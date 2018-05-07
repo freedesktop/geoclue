@@ -63,9 +63,9 @@
 	Geoclue service.
       </para>
     </partintro>
-    <xi:include href="docs-org.freedesktop.GeoClue2.Manager.xml"/>
-    <xi:include href="docs-org.freedesktop.GeoClue2.Client.xml"/>
-    <xi:include href="docs-org.freedesktop.GeoClue2.Location.xml"/>
+    <xi:include href="../src/docs-org.freedesktop.GeoClue2.Manager.xml"/>
+    <xi:include href="../src/docs-org.freedesktop.GeoClue2.Client.xml"/>
+    <xi:include href="../src/docs-org.freedesktop.GeoClue2.Location.xml"/>
     <xi:include href="xml/gclue-enums.xml"/>
   </reference>
 
@@ -77,7 +77,7 @@
 	agents must implement.
       </para>
     </partintro>
-    <xi:include href="docs-org.freedesktop.GeoClue2.Agent.xml"/>
+    <xi:include href="../src/agent/docs-org.freedesktop.GeoClue2.Agent.xml"/>
   </reference>
 
   <index>

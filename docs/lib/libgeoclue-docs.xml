@@ -92,7 +92,7 @@
   <appendix id="license">
     <title>License</title>
     <para>
-<programlisting><xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../COPYING.LIB" parse="text"><xi:fallback>FIXME: MISSING XINCLUDE CONTENT</xi:fallback></xi:include></programlisting>
+<programlisting><xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="COPYING.LIB" parse="text"><xi:fallback>FIXME: MISSING XINCLUDE CONTENT</xi:fallback></xi:include></programlisting>
     </para>
   </appendix>
 
