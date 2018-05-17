@@ -60,6 +60,7 @@ PKG_CHECK_MODULES(GEOCLUE, [
 
 # GObject-introspection support
 GOBJECT_INTROSPECTION_CHECK([0.9.6])
+VAPIGEN_CHECK()
 build_introspection=no
 
 # libgeoclue

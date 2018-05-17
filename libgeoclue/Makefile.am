@@ -121,6 +121,22 @@ Geoclue-2.0.typelib: Geoclue-2.0.gir $(INTROSPECTION_COMPILER)
 
 CLEANFILES += $(gir_DATA) $(typelibs_DATA)
 
+if ENABLE_VAPIGEN
+-include $(VAPIGEN_MAKEFILE)
+
+libgeoclue-2.0.vapi: Geoclue-2.0.gir libgeoclue-2.0.deps
+
+VAPIGEN_VAPIS = libgeoclue-2.0.vapi
+
+libgeoclue_2_0_vapi_DEPS = glib-2.0 gobject-2.0 gio-2.0 gio-unix-2.0
+libgeoclue_2_0_vapi_FILES = Geoclue-2.0.gir
+
+vapidir = $(datadir)/vala/vapi
+vapi_DATA = $(VAPIGEN_VAPIS) $(VAPIGEN_VAPIS:.vapi=.deps)
+
+EXTRA_DIST = libgeoclue-2.0.deps
+endif
+
 endif # HAVE_INTROSPECTION
 
 pkgconfigdir = $(libdir)/pkgconfig
