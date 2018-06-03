@@ -42,24 +42,32 @@ libgeoclue = library('geoclue-2',
                      install: true)
 
 gir = find_program('g-ir-scanner', required: false)
+vapigen = find_program('vapigen', required: false)
 cross_build = meson.is_cross_build()
 enable_gir = get_option('enable-introspection')
+pkg_requirements = ['glib-2.0', 'gio-2.0', 'gio-unix-2.0']
 
 if gir.found() and not cross_build and enable_gir
   gir_args = [ '--quiet', '--c-include=geoclue.h' ]
 
-  gnome.generate_gir(libgeoclue,
-                     sources: headers,
-                     namespace: 'Geoclue',
-                     nsversion: gclue_api_version,
-                     identifier_prefix: 'GClue',
-                     symbol_prefix: 'gclue',
-                     export_packages: 'libgeoclue-' + gclue_api_version,
-                     dependencies: base_deps,
-                     includes: [ 'GObject-2.0', 'Gio-2.0' ],
-                     include_directories: include_dirs,
-                     install: true,
-                     extra_args: gir_args)
+  geo_gir = gnome.generate_gir(libgeoclue,
+                               sources: headers,
+                               namespace: 'Geoclue',
+                               nsversion: gclue_api_version,
+                               identifier_prefix: 'GClue',
+                               symbol_prefix: 'gclue',
+                               export_packages: 'libgeoclue-' + gclue_api_version,
+                               dependencies: base_deps,
+                               includes: [ 'GObject-2.0', 'Gio-2.0' ],
+                               include_directories: include_dirs,
+                               install: true,
+                               extra_args: gir_args)
+  if vapigen.found()
+    gnome.generate_vapi('libgeoclue-' + gclue_api_version,
+                        sources: geo_gir[0],
+                        packages: pkg_requirements,
+                        install: true)
+  endif
 endif
 
 description = 'A convenience library to interact with Geoclue service'
@@ -70,7 +78,7 @@ pkgconf.generate(version: gclue_version,
                  filebase: 'libgeoclue-' + gclue_api_version,
                  libraries: libgeoclue,
                  subdirs: [ header_dir ],
-                 requires: ['glib-2.0', 'gio-2.0', 'gio-unix-2.0'])
+                 requires: pkg_requirements)
 
 libgeoclue_dep = declare_dependency(link_with: libgeoclue,
                                     include_directories: include_dirs,
