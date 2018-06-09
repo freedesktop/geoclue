@@ -279,6 +279,39 @@ stop_client (GClueServiceClient *client)
         gclue_dbus_client_set_active (GCLUE_DBUS_CLIENT (client), FALSE);
 }
 
+static GClueAccuracyLevel
+ensure_valid_accuracy_level (GClueAccuracyLevel accuracy_level,
+                             GClueAccuracyLevel max_accuracy)
+{
+        GClueAccuracyLevel accuracy;
+        GEnumClass *enum_class;
+        GEnumValue *enum_value;
+
+        accuracy = CLAMP (accuracy_level,
+                          GCLUE_ACCURACY_LEVEL_COUNTRY,
+                          max_accuracy);
+
+        enum_class = g_type_class_ref (GCLUE_TYPE_ACCURACY_LEVEL);
+        enum_value = g_enum_get_value (enum_class, accuracy);
+
+        if (enum_value == NULL) {
+                GClueAccuracyLevel i;
+
+                g_debug ("Invalid accuracy level %u requested", accuracy_level);
+                for (i = accuracy; i >= GCLUE_ACCURACY_LEVEL_COUNTRY; i--) {
+                        enum_value = g_enum_get_value (enum_class, i);
+
+                        if (enum_value != NULL) {
+                                accuracy = i;
+
+                                break;
+                        }
+                }
+        }
+
+        return accuracy;
+}
+
 static void
 on_agent_props_changed (GDBusProxy *agent_proxy,
                         GVariant   *changed_properties,
@@ -316,7 +349,7 @@ on_agent_props_changed (GDBusProxy *agent_proxy,
                         client->priv->agent_stopped = FALSE;
                         accuracy = gclue_dbus_client_get_requested_accuracy_level
                                 (gdbus_client);
-                        accuracy = CLAMP (accuracy, 0, max_accuracy);
+                        accuracy = ensure_valid_accuracy_level (accuracy, max_accuracy);
 
                         start_client (client, accuracy);
                         g_debug ("Re-started '%s'.", id);
@@ -432,7 +465,7 @@ handle_post_agent_check_auth (StartData *data)
         g_debug ("requested accuracy level: %u. "
                  "Max accuracy level allowed by agent: %u",
                  data->accuracy_level, max_accuracy);
-        data->accuracy_level = CLAMP (data->accuracy_level, 0, max_accuracy);
+        data->accuracy_level = ensure_valid_accuracy_level (data->accuracy_level, max_accuracy);
 
         config = gclue_config_get_singleton ();
         app_perm = gclue_config_get_app_perm (config,
@@ -558,9 +591,8 @@ gclue_service_client_handle_start (GClueDBusClient       *client,
         data->desktop_id =  g_strdup (desktop_id);
 
         data->accuracy_level = gclue_dbus_client_get_requested_accuracy_level (client);
-        data->accuracy_level = CLAMP (data->accuracy_level,
-                                      GCLUE_ACCURACY_LEVEL_COUNTRY,
-                                      GCLUE_ACCURACY_LEVEL_EXACT);
+        data->accuracy_level = ensure_valid_accuracy_level
+                (data->accuracy_level, GCLUE_ACCURACY_LEVEL_EXACT);
 
         /* No agent == No authorization */
         if (priv->agent_proxy == NULL) {
