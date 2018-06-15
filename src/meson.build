@@ -144,8 +144,9 @@ interface_files = [ location_interface_xml,
 # Provide a single interface file too for backwards compatiblity.
 # At least gnome-settings-daemon currently relies on that.
 unified_interface_xml = 'org.freedesktop.GeoClue2.xml'
+python = find_program('python3')
 create_interface = find_program('create-unified-xml.py')
-cmd = [create_interface, '@OUTPUT@', '@INPUT@' ]
+cmd = [python, create_interface, '@OUTPUT@', '@INPUT@' ]
 
 custom_target('gclue-xml-interface',
               input: interface_files,
