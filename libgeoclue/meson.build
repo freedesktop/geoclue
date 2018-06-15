@@ -1,4 +1,3 @@
-sources = [ 'gclue-helpers.c', 'gclue-simple.c' ]
 header_dir = 'libgeoclue-' + gclue_api_version
 
 # FIXME: meson 0.46 doesn't seem to be actually installing the headers
@@ -7,35 +6,46 @@ header_dir = 'libgeoclue-' + gclue_api_version
 # https://github.com/mesonbuild/meson/pull/3487
 
 # Client interface
-sources += gnome.gdbus_codegen('gclue-client',
+gclue_client = gnome.gdbus_codegen('gclue-client',
                                '../src/org.freedesktop.GeoClue2.Client.xml',
                                interface_prefix: 'org.freedesktop.GeoClue2.',
                                namespace: 'GClue',
                                install_header: true,
                                install_dir: header_dir)
 # Location interface
-sources += gnome.gdbus_codegen('gclue-location',
+gclue_location = gnome.gdbus_codegen('gclue-location',
                                '../src/org.freedesktop.GeoClue2.Location.xml',
                                interface_prefix: 'org.freedesktop.GeoClue2.',
                                namespace: 'GClue',
                                install_header: true,
                                install_dir: header_dir)
 # Manager interface
-sources += gnome.gdbus_codegen('gclue-manager',
+gclue_manager = gnome.gdbus_codegen('gclue-manager',
                                '../src/org.freedesktop.GeoClue2.Manager.xml',
                                interface_prefix: 'org.freedesktop.GeoClue2.',
                                namespace: 'GClue',
                                install_header: true,
                                install_dir: header_dir)
 
-headers = [ 'geoclue.h', 'gclue-helpers.h', 'gclue-simple.h' ]
-install_headers(headers, subdir: header_dir)
+libgeoclue_sources = files('gclue-helpers.c', 'gclue-simple.c')
+libgeoclue_sources += gclue_client[0]
+libgeoclue_sources += gclue_location[0]
+libgeoclue_sources += gclue_manager[0]
+
+libgeoclue_headers = files('geoclue.h', 'gclue-helpers.h', 'gclue-simple.h')
+
+install_headers(libgeoclue_headers, subdir: header_dir)
+
+libgeoclue_headers += gclue_client[1]
+libgeoclue_headers += gclue_location[1]
+libgeoclue_headers += gclue_manager[1]
 
 c_args = [ '-DG_LOG_DOMAIN="Geoclue"', '-Werror' ]
 include_dirs = [ libgeoclue_public_api_inc, include_directories('.') ]
 link_with = [ libgeoclue_public_api ]
 libgeoclue = library('geoclue-2',
-                     sources,
+                     libgeoclue_sources,
+                     libgeoclue_headers,
                      include_directories: include_dirs,
                      dependencies: base_deps,
                      link_with: link_with,
@@ -48,10 +58,8 @@ enable_gir = get_option('enable-introspection')
 pkg_requirements = ['glib-2.0', 'gio-2.0', 'gio-unix-2.0']
 
 if gir.found() and not cross_build and enable_gir
-  gir_args = [ '--quiet', '--c-include=geoclue.h' ]
-
   geo_gir = gnome.generate_gir(libgeoclue,
-                               sources: headers,
+                               sources: [ libgeoclue_sources, libgeoclue_headers ],
                                namespace: 'Geoclue',
                                nsversion: gclue_api_version,
                                identifier_prefix: 'GClue',
@@ -61,7 +69,8 @@ if gir.found() and not cross_build and enable_gir
                                includes: [ 'GObject-2.0', 'Gio-2.0' ],
                                include_directories: include_dirs,
                                install: true,
-                               extra_args: gir_args)
+                               header: 'geoclue.h',
+                               extra_args: [ '--quiet' ])
   if vapigen.found()
     gnome.generate_vapi('libgeoclue-' + gclue_api_version,
                         sources: geo_gir[0],
@@ -83,4 +92,4 @@ pkgconf.generate(version: gclue_version,
 libgeoclue_dep = declare_dependency(link_with: libgeoclue,
                                     include_directories: include_dirs,
                                     dependencies: base_deps,
-                                    sources: sources)
+                                    sources: [ libgeoclue_sources, libgeoclue_headers ])
