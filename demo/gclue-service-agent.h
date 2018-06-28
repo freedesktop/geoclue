@@ -53,14 +53,8 @@ struct _GClueServiceAgentClass
         GClueAgentSkeletonClass parent_class;
 };
 
-GType gclue_service_agent_get_type                 (void) G_GNUC_CONST;
-void  gclue_service_agent_new_async                (GDBusConnection    *connection,
-                                                    GCancellable       *cancellable,
-                                                    GAsyncReadyCallback callback,
-                                                    gpointer            user_data);
-GClueServiceAgent * gclue_service_agent_new_finish (GAsyncResult       *res,
-                                                    GError            **error);
-
+GType               gclue_service_agent_get_type (void) G_GNUC_CONST;
+GClueServiceAgent * gclue_service_agent_new      (GDBusConnection *connection);
 
 G_END_DECLS
 

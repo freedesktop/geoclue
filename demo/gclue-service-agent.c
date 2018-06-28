@@ -31,18 +31,20 @@
 
 #define AGENT_PATH "/org/freedesktop/GeoClue2/Agent"
 
+#define SERVICE           "org.freedesktop.GeoClue2"
+#define MANAGER_PATH      "/org/freedesktop/GeoClue2/Manager"
+#define MANAGER_INTERFACE "org.freedesktop.GeoClue2.Manager"
+
 static void
 gclue_service_agent_agent_iface_init (GClueAgentIface *iface);
 static void
-gclue_service_agent_async_initable_init (GAsyncInitableIface *iface);
+gclue_service_agent_constructed (GObject *object);
 
 G_DEFINE_TYPE_WITH_CODE (GClueServiceAgent,
                          gclue_service_agent,
                          GCLUE_TYPE_AGENT_SKELETON,
                          G_IMPLEMENT_INTERFACE (GCLUE_TYPE_AGENT,
-                                                gclue_service_agent_agent_iface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE,
-                                                gclue_service_agent_async_initable_init))
+                                                gclue_service_agent_agent_iface_init))
 
 struct _GClueServiceAgentPrivate
 {
@@ -114,6 +116,7 @@ gclue_service_agent_class_init (GClueServiceAgentClass *klass)
         object_class->finalize = gclue_service_agent_finalize;
         object_class->get_property = gclue_service_agent_get_property;
         object_class->set_property = gclue_service_agent_set_property;
+        object_class->constructed = gclue_service_agent_constructed;
 
         g_type_class_add_private (object_class, sizeof (GClueServiceAgentPrivate));
 
@@ -141,22 +144,11 @@ on_add_agent_ready (GObject      *source_object,
                     GAsyncResult *res,
                     gpointer      user_data)
 {
-        GTask *task = G_TASK (user_data);
-        GVariant *results;
         GError *error = NULL;
 
-        results = g_dbus_proxy_call_finish (G_DBUS_PROXY (source_object),
-                                            res,
-                                            &error);
-        if (results == NULL) {
-                g_task_return_error (task, error);
-                g_object_unref (task);
-                return;
-        }
-
-        g_task_return_boolean (task, TRUE);
-
-        g_object_unref (task);
+        g_dbus_proxy_call_finish (G_DBUS_PROXY (source_object),
+                                  res,
+                                  &error);
 }
 
 static void
@@ -201,19 +193,21 @@ on_manager_proxy_ready (GObject      *source_object,
                         GAsyncResult *res,
                         gpointer      user_data)
 {
-        GTask *task = G_TASK (user_data);
         GClueAgent *agent;
         GDBusProxy *proxy;
         GError *error = NULL;
 
         proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
         if (proxy == NULL) {
-                g_task_return_error (task, error);
-                g_object_unref (task);
+                g_critical ("Failed to create proxy to %s: %s",
+                            MANAGER_PATH,
+                            error->message);
+                g_error_free (error);
+
                 return;
         }
 
-        agent = GCLUE_AGENT (g_task_get_source_object (task));
+        agent = GCLUE_AGENT (user_data);
         gclue_agent_set_max_accuracy_level (agent, GCLUE_ACCURACY_LEVEL_EXACT);
 
         g_dbus_proxy_call (proxy,
@@ -222,55 +216,37 @@ on_manager_proxy_ready (GObject      *source_object,
                                           "geoclue-demo-agent"),
                            G_DBUS_CALL_FLAGS_NONE,
                            -1,
-                           g_task_get_cancellable (task),
+                           NULL,
                            on_add_agent_ready,
-                           task);
+                           NULL);
         print_in_use_info (proxy);
         g_signal_connect (proxy,
                           "g-properties-changed",
                           G_CALLBACK (on_manager_props_changed),
-                          agent);
+                          NULL);
 }
 
 static void
-gclue_service_agent_init_async (GAsyncInitable     *initable,
-                                int                 io_priority,
-                                GCancellable       *cancellable,
-                                GAsyncReadyCallback callback,
-                                gpointer            user_data)
+gclue_service_agent_constructed (GObject *object)
 {
-        GTask *task;
         GError *error = NULL;
-
-        task = g_task_new (initable, cancellable, callback, user_data);
-
         if (!g_dbus_interface_skeleton_export
-                (G_DBUS_INTERFACE_SKELETON (initable),
-                 GCLUE_SERVICE_AGENT (initable)->priv->connection,
+                (G_DBUS_INTERFACE_SKELETON (object),
+                 GCLUE_SERVICE_AGENT (object)->priv->connection,
                  AGENT_PATH,
                  &error)) {
-                g_task_return_error (task, error);
-                g_object_unref (task);
                 return;
         }
 
         g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
                                   G_DBUS_PROXY_FLAGS_NONE,
                                   NULL,
-                                  "org.freedesktop.GeoClue2",
-                                  "/org/freedesktop/GeoClue2/Manager",
-                                  "org.freedesktop.GeoClue2.Manager",
-                                  cancellable,
+                                  SERVICE,
+                                  MANAGER_PATH,
+                                  MANAGER_INTERFACE,
+                                  NULL,
                                   on_manager_proxy_ready,
-                                  task);
-}
-
-static gboolean
-gclue_service_agent_init_finish (GAsyncInitable *initable,
-                                 GAsyncResult   *result,
-                                 GError        **error)
-{
-        return g_task_propagate_boolean (G_TASK (result), error);
+                                  object);
 }
 
 typedef struct
@@ -405,42 +381,11 @@ gclue_service_agent_agent_iface_init (GClueAgentIface *iface)
         iface->handle_authorize_app = gclue_service_agent_handle_authorize_app;
 }
 
-static void
-gclue_service_agent_async_initable_init (GAsyncInitableIface *iface)
-{
-        iface->init_async = gclue_service_agent_init_async;
-        iface->init_finish = gclue_service_agent_init_finish;
-}
-
-void
-gclue_service_agent_new_async (GDBusConnection    *connection,
-                               GCancellable       *cancellable,
-                               GAsyncReadyCallback callback,
-                               gpointer            user_data)
-{
-        g_async_initable_new_async (GCLUE_TYPE_SERVICE_AGENT,
-                                    G_PRIORITY_DEFAULT,
-                                    cancellable,
-                                    callback,
-                                    user_data,
-                                    "connection", connection,
-                                    NULL);
-}
-
 GClueServiceAgent *
-gclue_service_agent_new_finish (GAsyncResult *res,
-                                GError      **error)
+gclue_service_agent_new (GDBusConnection *connection)
 {
-        GObject *object;
-        GObject *source_object;
-
-        source_object = g_async_result_get_source_object (res);
-        object = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object),
-                                              res,
-                                              error);
-        g_object_unref (source_object);
-        if (object != NULL)
-                return GCLUE_SERVICE_AGENT (object);
-        else
-                return NULL;
+        return g_object_new (GCLUE_TYPE_SERVICE_AGENT,
+                             "connection",
+                             connection,
+                             NULL);
 }

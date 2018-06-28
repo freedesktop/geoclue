@@ -44,25 +44,7 @@ static GOptionEntry entries[] =
         { NULL }
 };
 
-GDBusConnection *connection;
-GMainLoop *main_loop;
 GClueServiceAgent *agent = NULL;
-
-static void
-on_service_agent_ready (GObject      *source_object,
-                        GAsyncResult *res,
-                        gpointer      user_data)
-{
-        GError *error = NULL;
-
-        agent = gclue_service_agent_new_finish (res, &error);
-        if (agent == NULL) {
-                g_critical ("Failed to launch agent service: %s", error->message);
-                g_error_free (error);
-
-                exit (-3);
-        }
-}
 
 static void
 on_get_bus_ready (GObject      *source_object,
@@ -70,6 +52,7 @@ on_get_bus_ready (GObject      *source_object,
                   gpointer      user_data)
 {
         GError *error = NULL;
+        GDBusConnection *connection;
 
         connection = g_bus_get_finish (res, &error);
         if (connection == NULL) {
@@ -80,10 +63,7 @@ on_get_bus_ready (GObject      *source_object,
                 exit (-2);
         }
 
-        gclue_service_agent_new_async (connection,
-                                       NULL,
-                                       on_service_agent_ready,
-                                       NULL);
+        agent = gclue_service_agent_new (connection);
 }
 
 #define ABS_PATH ABS_SRCDIR "/agent"
@@ -91,6 +71,7 @@ on_get_bus_ready (GObject      *source_object,
 int
 main (int argc, char **argv)
 {
+        GMainLoop *main_loop;
         GError *error = NULL;
         GOptionContext *context;
 
