@@ -49,6 +49,7 @@ G_DEFINE_TYPE_WITH_CODE (GClueServiceAgent,
 struct _GClueServiceAgentPrivate
 {
         GDBusConnection *connection;
+        GDBusProxy *manager_proxy;
 };
 
 enum
@@ -193,24 +194,21 @@ on_manager_proxy_ready (GObject      *source_object,
                         GAsyncResult *res,
                         gpointer      user_data)
 {
-        GClueAgent *agent;
-        GDBusProxy *proxy;
+        GClueServiceAgent *agent;
         GError *error = NULL;
+        agent = GCLUE_SERVICE_AGENT (user_data);
 
-        proxy = g_dbus_proxy_new_for_bus_finish (res, &error);
-        if (proxy == NULL) {
+        agent->priv->manager_proxy = g_dbus_proxy_new_for_bus_finish (res,
+                                                                      &error);
+        if (agent->priv->manager_proxy == NULL) {
                 g_critical ("Failed to create proxy to %s: %s",
                             MANAGER_PATH,
                             error->message);
                 g_error_free (error);
-
                 return;
         }
 
-        agent = GCLUE_AGENT (user_data);
-        gclue_agent_set_max_accuracy_level (agent, GCLUE_ACCURACY_LEVEL_EXACT);
-
-        g_dbus_proxy_call (proxy,
+        g_dbus_proxy_call (agent->priv->manager_proxy,
                            "AddAgent",
                            g_variant_new ("(s)",
                                           "geoclue-demo-agent"),
@@ -219,25 +217,19 @@ on_manager_proxy_ready (GObject      *source_object,
                            NULL,
                            on_add_agent_ready,
                            NULL);
-        print_in_use_info (proxy);
-        g_signal_connect (proxy,
+        print_in_use_info (agent->priv->manager_proxy);
+        g_signal_connect (agent->priv->manager_proxy,
                           "g-properties-changed",
                           G_CALLBACK (on_manager_props_changed),
                           NULL);
 }
 
 static void
-gclue_service_agent_constructed (GObject *object)
+on_name_appeared (GDBusConnection *connection,
+                  const gchar     *name,
+                  const gchar     *name_owner,
+                  gpointer         user_data)
 {
-        GError *error = NULL;
-        if (!g_dbus_interface_skeleton_export
-                (G_DBUS_INTERFACE_SKELETON (object),
-                 GCLUE_SERVICE_AGENT (object)->priv->connection,
-                 AGENT_PATH,
-                 &error)) {
-                return;
-        }
-
         g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
                                   G_DBUS_PROXY_FLAGS_NONE,
                                   NULL,
@@ -246,7 +238,41 @@ gclue_service_agent_constructed (GObject *object)
                                   MANAGER_INTERFACE,
                                   NULL,
                                   on_manager_proxy_ready,
-                                  object);
+                                  user_data);
+}
+
+static void
+on_name_vanished (GDBusConnection *connection,
+                  const gchar     *name,
+                  gpointer         user_data)
+{
+        GClueServiceAgent *agent = GCLUE_SERVICE_AGENT (user_data);
+
+        g_clear_object (&agent->priv->manager_proxy);
+}
+
+static void
+gclue_service_agent_constructed (GObject *object)
+{
+        GError *error = NULL;
+        GClueServiceAgent *agent = GCLUE_SERVICE_AGENT (object);
+        if (!g_dbus_interface_skeleton_export
+                (G_DBUS_INTERFACE_SKELETON (agent),
+                 agent->priv->connection,
+                 AGENT_PATH,
+                 &error)) {
+                return;
+        }
+        gclue_agent_set_max_accuracy_level (GCLUE_AGENT (agent),
+                                            GCLUE_ACCURACY_LEVEL_EXACT);
+        g_bus_watch_name (G_BUS_TYPE_SYSTEM,
+                          SERVICE,
+                          G_BUS_NAME_WATCHER_FLAGS_NONE,
+                          on_name_appeared,
+                          on_name_vanished,
+                          agent,
+                          NULL);
+
 }
 
 typedef struct
