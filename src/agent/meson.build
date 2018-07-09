@@ -4,10 +4,11 @@ sources = gnome.gdbus_codegen('geoclue-agent-interface',
                               namespace: 'GClue',
                               docbook: 'docs')
 
-libgeoclue_agent_inc = include_directories('.')
+libgeoclue_agent_inc = include_directories('.', '../..')
 libgeoclue_agent = static_library('geoclue-agent',
                                   sources,
                                   dependencies: base_deps,
+                                  include_directories: libgeoclue_agent_inc,
                                   install: false)
 
 install_data('org.freedesktop.GeoClue2.Agent.xml',
