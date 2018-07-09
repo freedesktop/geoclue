@@ -43,13 +43,13 @@ subdir('public-api')
 if get_option('enable-backend')
     subdir('src')
 endif
-if get_option('enable-libgeoclue')
+if get_option('libgeoclue')
     subdir('libgeoclue')
 endif
 subdir('data')
 subdir('demo')
 subdir('po')
 
-if get_option('enable-gtk-doc')
+if get_option('gtk-doc')
   subdir('docs')
 endif

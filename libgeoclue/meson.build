@@ -56,7 +56,7 @@ libgeoclue = library('geoclue-2',
 gir = find_program('g-ir-scanner', required: false)
 vapigen = find_program('vapigen', required: false)
 cross_build = meson.is_cross_build()
-enable_gir = get_option('enable-introspection')
+enable_gir = get_option('introspection')
 pkg_requirements = ['glib-2.0', 'gio-2.0', 'gio-unix-2.0']
 gir_sources = [ libgeoclue_sources,
                 libgeoclue_headers,

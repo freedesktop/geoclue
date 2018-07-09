@@ -1,7 +1,7 @@
 if get_option('enable-backend')
     conf = configuration_data()
 
-    if get_option('enable-demo-agent')
+    if get_option('demo-agent')
         conf.set('demo_agent', 'geoclue-demo-agent;')
     else
         conf.set('demo_agent', '')

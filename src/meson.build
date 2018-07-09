@@ -87,9 +87,9 @@ sources += [ 'gclue-main.c',
              'gclue-min-uint.h', 'gclue-min-uint.c',
              'gclue-location.h', 'gclue-location.c' ]
 
-if get_option('enable-3g-source') or
-   get_option('enable-cdma-source') or
-   get_option('enable-modem-gps-source')
+if get_option('3g-source') or
+   get_option('cdma-source') or
+   get_option('modem-gps-source')
     geoclue_deps += [ dependency('mm-glib', version: '>= 1.6') ]
     sources += [ 'gclue-modem.c',
 				 'gclue-modem.h',
@@ -97,19 +97,19 @@ if get_option('enable-3g-source') or
 				 'gclue-modem-manager.h' ]
 endif
 
-if get_option('enable-3g-source')
+if get_option('3g-source')
     sources += [ 'gclue-3g.c', 'gclue-3g.h' ]
 endif
 
-if get_option('enable-cdma-source')
+if get_option('cdma-source')
     sources += [ 'gclue-cdma.c', 'gclue-cdma.h' ]
 endif
 
-if get_option('enable-modem-gps-source')
+if get_option('modem-gps-source')
     sources += [ 'gclue-modem-gps.c', 'gclue-modem-gps.h' ]
 endif
 
-if get_option('enable-nmea-source')
+if get_option('nmea-source')
     geoclue_deps += [ dependency('avahi-client', version: '>= 0.6.10'),
                       dependency('avahi-glib', version: '>= 0.6.10') ]
     sources += [ 'gclue-nmea-source.h', 'gclue-nmea-source.c' ]

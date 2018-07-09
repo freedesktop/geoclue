@@ -5,7 +5,7 @@ i18n = import('i18n')
 desktop_conf = configuration_data()
 desktop_conf.set('libexecdir', get_option('libexecdir'))
 
-if get_option('enable-libgeoclue')
+if get_option('libgeoclue')
     include_dirs = [ configinc,
                      libgeoclue_public_api_inc,
                      include_directories('../libgeoclue') ]
@@ -30,7 +30,7 @@ if get_option('enable-libgeoclue')
                     install_dir: desktop_dir)
 endif
 
-if get_option('enable-demo-agent')
+if get_option('demo-agent')
     include_dirs = [ configinc,
                      libgeoclue_public_api_inc,
                      libgeoclue_agent_inc ]
