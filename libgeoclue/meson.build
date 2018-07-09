@@ -56,10 +56,13 @@ vapigen = find_program('vapigen', required: false)
 cross_build = meson.is_cross_build()
 enable_gir = get_option('enable-introspection')
 pkg_requirements = ['glib-2.0', 'gio-2.0', 'gio-unix-2.0']
+gir_sources = [ libgeoclue_sources,
+                libgeoclue_headers,
+                '../public-api/gclue-enums.h' ]
 
 if gir.found() and not cross_build and enable_gir
   geo_gir = gnome.generate_gir(libgeoclue,
-                               sources: [ libgeoclue_sources, libgeoclue_headers ],
+                               sources: gir_sources,
                                namespace: 'Geoclue',
                                nsversion: gclue_api_version,
                                identifier_prefix: 'GClue',
