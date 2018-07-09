@@ -71,7 +71,7 @@ sources += gnome.genmarshal('gclue-marshal',
 include_dirs = [ configinc,
                  libgeoclue_agent_inc,
                  libgeoclue_public_api_inc,
-                 include_directories('../..') ]
+                 include_directories('..') ]
 
 sources += [ 'gclue-main.c',
              'gclue-3g-tower.h',
