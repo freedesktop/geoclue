@@ -49,6 +49,8 @@ libgeoclue = library('geoclue-2',
                      include_directories: include_dirs,
                      dependencies: base_deps,
                      link_with: link_with,
+                     soversion: '0',
+                     version: '0.0.0',
                      install: true)
 
 gir = find_program('g-ir-scanner', required: false)
