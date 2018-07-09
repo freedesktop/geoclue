@@ -1,4 +1,4 @@
-project('geoclue', 'c', version: '2.4.10', meson_version : '>= 0.46.1')
+project('geoclue', 'c', version: '2.4.10', meson_version : '>= 0.47.0')
 
 gclue_version = meson.project_version()
 ver_arr = gclue_version.split('.')
