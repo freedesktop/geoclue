@@ -42,13 +42,13 @@ libgeoclue_headers += gclue_manager[1]
 
 c_args = [ '-DG_LOG_DOMAIN="Geoclue"', '-Werror' ]
 include_dirs = [ libgeoclue_public_api_inc, include_directories('.') ]
-link_with = [ libgeoclue_public_api ]
+link_whole = [ libgeoclue_public_api ]
 libgeoclue = library('geoclue-2',
                      libgeoclue_sources,
                      libgeoclue_headers,
                      include_directories: include_dirs,
                      dependencies: base_deps,
-                     link_with: link_with,
+                     link_whole: link_whole,
                      soversion: '0',
                      version: '0.0.0',
                      install: true)

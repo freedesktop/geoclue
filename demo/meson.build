@@ -44,7 +44,7 @@ if get_option('demo-agent')
                sources,
                include_directories: include_dirs,
                c_args: c_args,
-               link_with: [ libgeoclue_agent ],
+               link_whole: [ libgeoclue_agent ],
                dependencies: deps,
                install: true,
                install_dir: demo_dir)
