@@ -1,22 +1,23 @@
 before_script:
     -  sed -i '/^#\sdeb-src /s/^#//' '/etc/apt/sources.list'
     - apt-get update && apt-get build-dep --yes geoclue-2.0
-    - apt-get install --yes git gobject-introspection libmm-glib-dev wget libnotify-dev xsltproc gtk-doc-tools
+    - apt-get install --yes git gobject-introspection libmm-glib-dev wget libnotify-dev xsltproc gtk-doc-tools python3-pip
         # Further packages are installed as these are new dependencies for the latest source code, compared to the dependencies listed in the distribution version (`apt-get build-dep` always refers to the version which is built for the OS rather than the up-to-date source)
     - wget https://ftp.gnu.org/gnu/gettext/gettext-0.19.8.1.tar.xz && tar xf gettext-0.19.8.1.tar.xz && cd gettext-0.19.8.1 && ./configure && make -j && make install && ldconfig && cd ..
         # older Ubuntu systems require explicit `ldconfig` in order to avoid errors like `error while loading shared libraries: libgettextsrc-0.19.8.1.so: cannot open shared object file: No such file or directory`
     - git clone --depth 50 --recurse-submodules https://github.com/freedesktop/ModemManager.git && cd ModemManager && ./autogen.sh --without-udev --without-mbim --without-qmi && make -j && make install && cd ..
+    - pip3 install --user meson
 
 # Ubuntu 14.04 is not supported, see README for details
 
 ubuntu-16.04:
     image: ubuntu:xenial
-    script: git clone --depth 50 --recurse-submodules https://gitlab.freedesktop.org/geoclue/geoclue && cd geoclue && ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
+    script: git clone --depth 50 --recurse-submodules https://gitlab.freedesktop.org/geoclue/geoclue && cd geoclue && meson -Dnmea-source=false build && ninja -C build && ninja -C build test && ninja -C build install
 
 ubuntu-17.10:
     image: ubuntu:artful
-    script: git clone --depth 50 --recurse-submodules https://gitlab.freedesktop.org/geoclue/geoclue && cd geoclue && ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
+    script: git clone --depth 50 --recurse-submodules https://gitlab.freedesktop.org/geoclue/geoclue && cd geoclue && meson -Dnmea-source=false build && ninja -C build && ninja -C build test && ninja -C build install
 
 ubuntu-18.04:
     image: ubuntu:bionic
-    script: git clone --depth 50 --recurse-submodules https://gitlab.freedesktop.org/geoclue/geoclue && cd geoclue && ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
+    script: git clone --depth 50 --recurse-submodules https://gitlab.freedesktop.org/geoclue/geoclue && cd geoclue && meson -Dnmea-source=false build && ninja -C build && ninja -C build test && ninja -C build install
