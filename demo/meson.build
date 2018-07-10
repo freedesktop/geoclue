@@ -15,8 +15,7 @@ if get_option('libgeoclue')
                'where-am-i.c',
                include_directories: include_dirs,
                c_args: c_args,
-               link_with: [ libgeoclue ],
-               dependencies: base_deps,
+               dependencies: [base_deps, libgeoclue_dep],
                install: true,
                install_dir: demo_dir)
     desktop_in = configure_file(output: 'geoclue-where-am-i.desktop.in',
@@ -38,7 +37,8 @@ if get_option('demo-agent')
     c_args = [ '-Werror' ]
     sources = [ 'gclue-service-agent.h',
                 'gclue-service-agent.c',
-                'agent.c' ]
+                'agent.c',
+                libgeoclue_agent_sources[1] ]
     deps = base_deps + [ dependency('libnotify') ]
     executable('agent',
                sources,

@@ -53,6 +53,10 @@ libgeoclue = library('geoclue-2',
                      version: '0.0.0',
                      install: true)
 
+libgeoclue_dep = declare_dependency(
+    link_with: libgeoclue,
+    sources: libgeoclue_public_api_gen_sources[1])
+
 gir = find_program('g-ir-scanner', required: false)
 vapigen = find_program('vapigen', required: false)
 cross_build = meson.is_cross_build()
@@ -60,7 +64,7 @@ enable_gir = get_option('introspection')
 pkg_requirements = ['glib-2.0', 'gio-2.0', 'gio-unix-2.0']
 gir_sources = [ libgeoclue_sources,
                 libgeoclue_headers,
-                '../public-api/gclue-enums.h' ]
+                libgeoclue_public_api_gen_sources[1] ]
 
 if gir.found() and not cross_build and enable_gir
   geo_gir = gnome.generate_gir(libgeoclue,
