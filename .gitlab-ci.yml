@@ -9,10 +9,12 @@ before_script:
     - pip3 install meson
 
 # Ubuntu 14.04 is not supported, see README for details
+#
+# FIXME: Also disable gtk-doc on Ubuntu 16.04 cause it fails install. Would be nice to get it fixed.
 
 ubuntu-16.04:
     image: ubuntu:xenial
-    script: git clone --depth 50 --recurse-submodules https://gitlab.freedesktop.org/geoclue/geoclue && cd geoclue && meson -Dnmea-source=false build && ninja -C build && ninja -C build test && ninja -C build install
+    script: git clone --depth 50 --recurse-submodules https://gitlab.freedesktop.org/geoclue/geoclue && cd geoclue && meson -Dnmea-source=false -Dgtk-doc=false build && ninja -C build && ninja -C build test && ninja -C build install
 
 ubuntu-17.10:
     image: ubuntu:artful
