@@ -50,7 +50,15 @@ subdir('data')
 subdir('demo')
 subdir('po')
 
-if get_option('gtk-doc')
+# FIXME: The D-Bus docs should not need libgeoclue but after a few hours of
+# banging my head agaist gtk-doc+meson and asking on IRC, I failed to find a
+# way to tell gtk-doc to link to the uninstalled public-api static library. A
+# non-working solution is in 'wip/fix-srv-docs' branch.
+#
+# If you look into this issue, you might also want to see how we can fix the
+# dependency issue that stops the user to run `ninja -C build geoclue-doc`
+# before `ninja -C build`.
+if get_option('gtk-doc') and get_option('libgeoclue')
   subdir('docs')
 endif
 
