@@ -25,9 +25,6 @@ option('enable-backend',
 option('demo-agent',
        type: 'boolean', value: true,
        description: 'Build demo agent')
-option('debug',
-       type: 'boolean', value: false,
-       description: 'Build debug build')
 option('dbus-sys-dir',
        type: 'string',
        description: 'where D-BUS system.d directory is')
