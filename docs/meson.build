@@ -20,7 +20,7 @@ gnome.gtkdoc('geoclue',
              main_xml: 'geoclue-docs.xml',
              content_files: content_files,
              scan_args: scan_options,
-             src_dir: 'public-api',
+             src_dir: libgeoclue_public_api_inc,
              mkdb_args: mkdb_options,
              dependencies: libgeoclue_dep,
              install: true)
