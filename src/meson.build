@@ -118,7 +118,7 @@ if get_option('nmea-source')
     sources += [ 'gclue-nmea-source.h', 'gclue-nmea-source.c' ]
 endif
 
-c_args = [ '-DG_LOG_DOMAIN="Geoclue"', '-Werror' ]
+c_args = [ '-DG_LOG_DOMAIN="Geoclue"' ]
 link_with = [ libgeoclue_public_api, libgeoclue_agent, libgeocode_glib ]
 install_dir = get_option('libexecdir')
 executable('geoclue',

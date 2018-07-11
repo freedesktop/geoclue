@@ -40,7 +40,7 @@ libgeoclue_headers += gclue_client[1]
 libgeoclue_headers += gclue_location[1]
 libgeoclue_headers += gclue_manager[1]
 
-c_args = [ '-DG_LOG_DOMAIN="Geoclue"', '-Werror' ]
+c_args = [ '-DG_LOG_DOMAIN="Geoclue"' ]
 include_dirs = [ libgeoclue_public_api_inc, include_directories('.', '..') ]
 link_whole = [ libgeoclue_public_api ]
 libgeoclue = library('geoclue-2',

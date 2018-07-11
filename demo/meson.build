@@ -10,11 +10,9 @@ if get_option('libgeoclue')
                      libgeoclue_public_api_inc,
                      include_directories('../libgeoclue') ]
 
-    c_args = [ '-Werror' ]
     executable('where-am-i',
                'where-am-i.c',
                include_directories: include_dirs,
-               c_args: c_args,
                dependencies: [base_deps, libgeoclue_dep],
                install: true,
                install_dir: demo_dir)
@@ -34,7 +32,6 @@ if get_option('demo-agent')
                      libgeoclue_public_api_inc,
                      libgeoclue_agent_inc ]
 
-    c_args = [ '-Werror' ]
     sources = [ 'gclue-service-agent.h',
                 'gclue-service-agent.c',
                 'agent.c',
@@ -43,7 +40,6 @@ if get_option('demo-agent')
     executable('agent',
                sources,
                include_directories: include_dirs,
-               c_args: c_args,
                link_whole: [ libgeoclue_agent ],
                dependencies: deps,
                install: true,
