@@ -22,5 +22,5 @@ gnome.gtkdoc('geoclue',
              scan_args: scan_options,
              src_dir: libgeoclue_public_api_inc,
              mkdb_args: mkdb_options,
-             dependencies: libgeoclue_dep,
+             dependencies: [base_deps, libgeoclue_public_api_dep],
              install: true)

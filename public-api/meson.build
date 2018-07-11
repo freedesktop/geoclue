@@ -16,3 +16,6 @@ libgeoclue_public_api = static_library('geoclue-public-api',
                                        libgeoclue_public_api_gen_sources,
                                        dependencies: base_deps,
                                        install: false)
+
+libgeoclue_public_api_dep = declare_dependency(sources: libgeoclue_public_api_gen_sources,
+                                               link_whole: libgeoclue_public_api)
