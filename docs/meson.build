@@ -1,4 +1,6 @@
-subdir('lib')
+if get_option('libgeoclue')
+    subdir('lib')
+endif
 
 conf = configuration_data()
 conf.set_quoted('VERSION', gclue_version)
