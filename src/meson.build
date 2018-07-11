@@ -32,7 +32,7 @@ dbus_gen_src += gnome.gdbus_codegen(
     interface_prefix: 'org.freedesktop.GeoClue2.',
     namespace: 'GClueDBus',
     docbook: 'docs')
-sources = dbus_gen_src
+sources = [ dbus_gen_src, libgeoclue_public_api_gen_sources[1] ]
 
 annotations = [[ 'fi.w1.wpa_supplicant1',
                  'org.gtk.GDBus.C.Name',
