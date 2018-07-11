@@ -53,3 +53,32 @@ subdir('po')
 if get_option('gtk-doc')
   subdir('docs')
 endif
+
+# FIXME: Remove this once meson does it itself: https://github.com/mesonbuild/meson/issues/757
+summary = '''
+        GeoClue @0@
+        =================
+
+        prefix:                   @1@
+        c compiler:               @2@
+        Systemd system unit dir:  @3@
+
+        Backend:                  @4@
+        Convenience library:      @5@
+        Introspection:            @6@
+        3G source:                @7@
+        CDMA source:              @8@
+        Modem GPS source:         @9@
+        Network NMEA source:      @10@
+'''.format(gclue_version,
+           get_option('prefix'),
+           cc.get_id(),
+           systemd_unit_dir,
+           get_option('enable-backend'),
+           get_option('libgeoclue'),
+           get_option('introspection'),
+           get_option('3g-source'),
+           get_option('cdma-source'),
+           get_option('modem-gps-source'),
+           get_option('nmea-source'))
+message(summary)
