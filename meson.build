@@ -29,8 +29,6 @@ configinc = include_directories('.')
 gnome = import('gnome')
 cc = meson.get_compiler('c')
 
-add_global_arguments([ '-Wall' ], language: 'c')
-
 base_deps = [ dependency('glib-2.0', version: '>= 2.34.0'),
               dependency('gio-2.0', version: '>= 2.34.0'),
               dependency('gio-unix-2.0', version: '>= 2.34.0') ]
