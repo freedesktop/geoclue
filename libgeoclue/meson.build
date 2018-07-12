@@ -54,10 +54,6 @@ libgeoclue = library('geoclue-2',
                      version: '0.0.0',
                      install: true)
 
-libgeoclue_dep = declare_dependency(
-    link_with: libgeoclue,
-    sources: libgeoclue_public_api_gen_sources[1])
-
 gir = find_program('g-ir-scanner', required: false)
 vapigen = find_program('vapigen', required: false)
 cross_build = meson.is_cross_build()
