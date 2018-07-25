@@ -142,6 +142,6 @@ endif # HAVE_INTROSPECTION
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libgeoclue-$(GEOCLUE_API_VERSION).pc
 
-DISTCLEANFILES = $(pkgconfig_DATA)
+DISTCLEANFILES = $(pkgconfig_DATA) $(VAPIGEN_VAPIS)
 
 -include $(top_srcdir)/git.mk
