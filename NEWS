@@ -1,3 +1,25 @@
+2.4.11
+======
+
+- Don't crash on invalid accuracy level request.
+- The demo agent now watches for geoclue on D-Bus if it's not running already,
+  instead of giving up. This solves a race-condition, which makes geoclue
+  completely unusable.
+- Provide Vala bindings for libgeoclue.
+- Add gclue_client_get/set_time_threshold() to docs.
+
+Dependency-related changes:
+
+Require glib >= 2.44
+
+Contributors to this release:
+
+Corentin Noël <corentin.noel@collabora.co.uk>
+Karl-Philipp Richter <krichter722@aol.de>
+Valentin Blot <freedesktop-devel@valentinblot.org>
+Zeeshan Ali <zeenix@collabora.co.uk>
+Zeeshan Ali <zeenix@gmail.com>
+
 2.4.10
 ======
 
