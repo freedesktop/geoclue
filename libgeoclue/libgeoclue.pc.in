@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 datarootdir=@datarootdir@
 datadir=@datadir@
 libdir=@libdir@
-includedir=@prefix@/include
+includedir=@includedir@
 
 Name: Geoclue Client Library
 Description: A convenience library to interact with Geoclue service
