@@ -24,6 +24,11 @@ url=https://location.services.mozilla.com/v1/geolocate?key=geoclue
 # this url while changing API_KEY to your Google API key and comment out or
 # remove the url above.
 #
+# WARNING: Please make sure that you are complying with the Google's ToS and
+#          policies if you uncomment this:
+#
+# https://developers.google.com/maps/documentation/geolocation/policies
+#
 #url=https://www.googleapis.com/geolocation/v1/geolocate?key=YOUR_KEY
 
 # Submit data to Mozilla Location Service
