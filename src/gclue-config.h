@@ -67,6 +67,7 @@ GClueConfig *       gclue_config_get_singleton          (void);
 gboolean            gclue_config_is_agent_allowed       (GClueConfig     *config,
                                                          const char      *desktop_id,
                                                          GClueClientInfo *agent_info);
+gsize               gclue_config_get_num_allowed_agents (GClueConfig     *config);
 GClueAppPerm        gclue_config_get_app_perm           (GClueConfig     *config,
                                                          const char      *desktop_id,
                                                          GClueClientInfo *app_info);
