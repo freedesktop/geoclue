@@ -497,14 +497,23 @@ handle_pending_auth (gpointer user_data)
 
         uid = gclue_client_info_get_user_id (priv->client_info);
         if (priv->agent_proxy == NULL) {
-                g_dbus_method_invocation_return_error (data->invocation,
-                                                       G_DBUS_ERROR,
-                                                       G_DBUS_ERROR_ACCESS_DENIED,
-                                                       "'%s' disallowed, no agent "
-                                                       "for UID %u",
-                                                       data->desktop_id,
-                                                       uid);
-                start_data_free (data);
+                GClueConfig *config = gclue_config_get_singleton ();
+
+                if (gclue_config_get_num_allowed_agents (config) == 0) {
+                        /* If there are no white-listed agents, there is no
+                         * point in requiring an agent */
+                        complete_start (data);
+                } else {
+                        g_dbus_method_invocation_return_error
+                                (data->invocation,
+                                 G_DBUS_ERROR,
+                                 G_DBUS_ERROR_ACCESS_DENIED,
+                                 "'%s' disallowed, no agent "
+                                 "for UID %u",
+                                 data->desktop_id,
+                                 uid);
+                        start_data_free (data);
+                }
         } else {
                 handle_post_agent_check_auth (data);
         }
