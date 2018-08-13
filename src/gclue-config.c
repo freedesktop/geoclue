@@ -307,6 +307,12 @@ gclue_config_is_agent_allowed (GClueConfig     *config,
         return FALSE;
 }
 
+gsize
+gclue_config_get_num_allowed_agents (GClueConfig *config)
+{
+        return config->priv->num_agents;
+}
+
 GClueAppPerm
 gclue_config_get_app_perm (GClueConfig     *config,
                            const char      *desktop_id,
