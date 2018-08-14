@@ -1,3 +1,15 @@
+2.4.12
+======
+
+This release is mainly to provide a work-around for documentation build issue
+with 2.4.11 release tarball. It also fixes our library .pc file to respect the
+includedir option.
+
+Contributors to this release:
+
+Bastien Nocera <hadess@hadess.net>
+Zeeshan Ali <zeenix@collabora.co.uk>
+
 2.4.11
 ======
 
