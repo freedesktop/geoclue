@@ -14,6 +14,9 @@ SCAN_OPTIONS=--ignore-headers=config.h --rebuild-types
 # The directory containing the source code. Relative to $(srcdir)
 DOC_SOURCE_DIR=../../libgeoclue ../../public-api
 
+# Extra options to supply to gtkdoc-fixref.
+FIXXREF_OPTIONS=--extra-dir=../html
+
 # Used for dependencies
 HFILE_GLOB=
 CFILE_GLOB=

@@ -2,7 +2,7 @@ NULL =
 
 AUTOMAKE_OPTIONS = 1.7
 
-SUBDIRS = lib
+SUBDIRS = . lib
 
 # The name of the module.
 DOC_MODULE=geoclue
