@@ -90,9 +90,7 @@ sources += [ 'gclue-main.c',
              'gclue-min-uint.h', 'gclue-min-uint.c',
              'gclue-location.h', 'gclue-location.c' ]
 
-if get_option('3g-source') or
-   get_option('cdma-source') or
-   get_option('modem-gps-source')
+if get_option('3g-source') or get_option('cdma-source') or get_option('modem-gps-source')
     geoclue_deps += [ dependency('mm-glib', version: '>= 1.6') ]
     sources += [ 'gclue-modem.c',
 				 'gclue-modem.h',
