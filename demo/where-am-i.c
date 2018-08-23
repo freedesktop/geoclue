@@ -152,22 +152,24 @@ on_simple_ready (GObject      *source_object,
             exit (-1);
         }
         client = gclue_simple_get_client (simple);
-        g_object_ref (client);
-        g_print ("Client object: %s\n",
-                 g_dbus_proxy_get_object_path (G_DBUS_PROXY (client)));
-        if (time_threshold > 0) {
-                gclue_client_set_time_threshold (client, time_threshold);
-        }
+        if (client) {
+                g_object_ref (client);
+                g_print ("Client object: %s\n",
+                         g_dbus_proxy_get_object_path (G_DBUS_PROXY (client)));
+                if (time_threshold > 0) {
+                        gclue_client_set_time_threshold (client, time_threshold);
+                }
 
+                g_signal_connect (client,
+                                  "notify::active",
+                                  G_CALLBACK (on_client_active_notify),
+                                  NULL);
+        }
         print_location (simple);
 
         g_signal_connect (simple,
                           "notify::location",
                           G_CALLBACK (print_location),
-                          NULL);
-        g_signal_connect (client,
-                          "notify::active",
-                          G_CALLBACK (on_client_active_notify),
                           NULL);
 }
 
