@@ -25,11 +25,20 @@ gclue_manager = gnome.gdbus_codegen(
     install_header: true,
     install_dir: include_subdir)
 
+# Location portal interface
+location_portal = gnome.gdbus_codegen('xdp-location',
+				'org.freedesktop.portal.Location.xml',
+				interface_prefix: 'org.freedesktop.portal.',
+				namespace: 'Xdp',
+				install_header: false)
+
 libgeoclue_sources = files('gclue-helpers.c', 'gclue-simple.c')
 libgeoclue_sources += gclue_client[0]
 libgeoclue_sources += gclue_location[0]
 libgeoclue_sources += gclue_manager[0]
 libgeoclue_sources += libgeoclue_public_api_gen_sources[1]
+libgeoclue_sources += location_portal[0]
+libgeoclue_sources += location_portal[1]
 
 libgeoclue_headers = files('geoclue.h', 'gclue-helpers.h', 'gclue-simple.h')
 
