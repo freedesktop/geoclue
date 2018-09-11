@@ -47,8 +47,7 @@ if get_option('demo-agent')
 
     desktop_in = configure_file(output: 'geoclue-demo-agent.desktop.in',
                                 input: 'geoclue-demo-agent.desktop.in.in',
-                                configuration: desktop_conf,
-                                install_dir: desktop_dir)
+                                configuration: desktop_conf)
     i18n.merge_file(output: 'geoclue-demo-agent.desktop',
                     input: desktop_in,
                     type: 'desktop',
