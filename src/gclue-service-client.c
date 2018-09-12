@@ -330,16 +330,17 @@ on_agent_props_changed (GDBusProxy *agent_proxy,
         g_variant_get (changed_properties, "a{sv}", &iter);
         while (g_variant_iter_loop (iter, "{&sv}", &key, &value)) {
                 GClueAccuracyLevel max_accuracy;
-                GClueConfig *config;
                 const char *id;
+                gboolean system_app;
 
                 if (strcmp (key, "MaxAccuracyLevel") != 0)
                         continue;
 
                 gdbus_client = GCLUE_DBUS_CLIENT (client);
-                config = gclue_config_get_singleton ();
                 id = gclue_dbus_client_get_desktop_id (gdbus_client);
                 max_accuracy = g_variant_get_uint32 (value);
+                system_app = (gclue_client_info_get_xdg_id
+                              (client->priv->client_info) != NULL);
                 /* FIXME: We should be handling all values of max accuracy
                  *        level here, not just 0 and non-0.
                  */
@@ -355,7 +356,7 @@ on_agent_props_changed (GDBusProxy *agent_proxy,
                         g_debug ("Re-started '%s'.", id);
                 } else if (max_accuracy == 0 &&
                            gclue_dbus_client_get_active (gdbus_client) &&
-                           !gclue_config_is_system_component (config, id)) {
+                           !system_app) {
                         stop_client (client);
                         client->priv->agent_stopped = TRUE;
                         g_debug ("Stopped '%s'.", id);
@@ -472,8 +473,7 @@ handle_post_agent_check_auth (StartData *data)
                                               data->desktop_id,
                                               priv->client_info);
 
-        if (gclue_config_is_system_component (config, data->desktop_id) ||
-            app_perm == GCLUE_APP_PERM_ALLOWED) {
+        if (app_perm == GCLUE_APP_PERM_ALLOWED) {
                 complete_start (data);
                 return;
         }
@@ -557,6 +557,7 @@ gclue_service_client_handle_start (GClueDBusClient       *client,
         const char *desktop_id;
         GClueAppPerm app_perm;
         guint32 uid;
+        gboolean system_app = FALSE;
 
         if (priv->locator != NULL) {
                 /* Already started */
@@ -566,9 +567,11 @@ gclue_service_client_handle_start (GClueDBusClient       *client,
         }
 
         desktop_id = gclue_client_info_get_xdg_id (priv->client_info);
-        if (desktop_id == NULL)
+        if (desktop_id == NULL) {
                 /* Non-xdg app */
                 desktop_id = gclue_dbus_client_get_desktop_id (client);
+                system_app = TRUE;
+        }
 
         if (desktop_id == NULL) {
                 g_dbus_method_invocation_return_error_literal (invocation,
@@ -602,6 +605,14 @@ gclue_service_client_handle_start (GClueDBusClient       *client,
         data->accuracy_level = gclue_dbus_client_get_requested_accuracy_level (client);
         data->accuracy_level = ensure_valid_accuracy_level
                 (data->accuracy_level, GCLUE_ACCURACY_LEVEL_EXACT);
+
+        if (system_app) {
+                /* Since we have no reliable way to identify system apps, no
+                 * need for auth for them. */
+                complete_start (data);
+
+                return TRUE;
+        }
 
         /* No agent == No authorization */
         if (priv->agent_proxy == NULL) {
