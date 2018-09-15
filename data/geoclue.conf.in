@@ -13,8 +13,29 @@ whitelist=@demo_agent@gnome-shell;io.elementary.desktop.agent-geoclue2
 # Fetch location from NMEA sources on local network?
 enable=true
 
+# 3G source configuration options
+[3g]
+
+# Enable 3G source
+enable=true
+
+# CDMA source configuration options
+[cdma]
+
+# Enable CDMA source
+enable=true
+
+# Modem GPS source configuration options
+[modem-gps]
+
+# Enable Modem-GPS source
+enable=true
+
 # WiFi source configuration options
 [wifi]
+
+# Enable WiFi source
+enable=true
 
 # URL to the wifi geolocation service. The key can currenty be anything, just
 # needs to be present but that is likely going to change in future.

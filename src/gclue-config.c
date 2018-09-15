@@ -57,6 +57,10 @@ struct _GClueConfigPrivate
         char *wifi_url;
         gboolean wifi_submit;
         gboolean enable_nmea_source;
+        gboolean enable_3g_source;
+        gboolean enable_cdma_source;
+        gboolean enable_modem_gps_source;
+        gboolean enable_wifi_source;
         char *wifi_submit_url;
         char *wifi_submit_nick;
 
@@ -112,7 +116,9 @@ load_agent_config (GClueConfig *config)
 static void
 load_app_configs (GClueConfig *config)
 {
-        const char *known_groups[] = { "agent", "wifi", "network-nmea", NULL };
+        const char *known_groups[] = { "agent", "wifi", "3g", "cdma",
+                                       "modem-gps", "network-nmea",
+                                       NULL };
         GClueConfigPrivate *priv = config->priv;
         gsize num_groups = 0, i;
         char **groups;
@@ -181,6 +187,32 @@ error_out:
         g_strfreev (groups);
 }
 
+static gboolean
+load_enable_source_config (GClueConfig *config,
+                           const char  *source_name)
+{
+        GClueConfigPrivate *priv = config->priv;
+        GError *error = NULL;
+        gboolean enable;
+
+        enable = g_key_file_get_boolean (priv->key_file,
+                                         source_name,
+                                         "enable",
+                                         &error);
+        if (error != NULL) {
+                g_debug ("Failed to get config %s/enable:"
+                         " %s",
+                         source_name,
+                         error->message);
+                g_error_free (error);
+
+                /* Source should be enabled by default */
+                return TRUE;
+        }
+
+        return enable;
+}
+
 #define DEFAULT_WIFI_URL "https://location.services.mozilla.com/v1/geolocate?key=geoclue"
 #define DEFAULT_WIFI_SUBMIT_URL "https://location.services.mozilla.com/v1/submit?key=geoclue"
 
@@ -189,6 +221,8 @@ load_wifi_config (GClueConfig *config)
 {
         GClueConfigPrivate *priv = config->priv;
         GError *error = NULL;
+
+        priv->enable_wifi_source = load_enable_source_config (config, "wifi");
 
         priv->wifi_url = g_key_file_get_string (priv->key_file,
                                                 "wifi",
@@ -233,23 +267,31 @@ load_wifi_config (GClueConfig *config)
 }
 
 static void
+load_3g_config (GClueConfig *config)
+{
+        config->priv->enable_3g_source =
+                load_enable_source_config (config, "3g");
+}
+
+static void
+load_cdma_config (GClueConfig *config)
+{
+        config->priv->enable_cdma_source =
+                load_enable_source_config (config, "cdma");
+}
+
+static void
+load_modem_gps_config (GClueConfig *config)
+{
+        config->priv->enable_modem_gps_source =
+                load_enable_source_config (config, "modem-gps");
+}
+
+static void
 load_network_nmea_config (GClueConfig *config)
 {
-        GClueConfigPrivate *priv = config->priv;
-        GError *error = NULL;
-
-        priv->enable_nmea_source = g_key_file_get_boolean (priv->key_file,
-                                                           "network-nmea",
-                                                           "enable",
-                                                           &error);
-        if (error != NULL) {
-                g_debug ("Failed to get config network-nmea/enable:"
-                         " %s",
-                         error->message);
-                g_error_free (error);
-
-                return;
-        }
+        config->priv->enable_nmea_source =
+                load_enable_source_config (config, "network-nmea");
 }
 
 static void
@@ -277,6 +319,9 @@ gclue_config_init (GClueConfig *config)
         load_agent_config (config);
         load_app_configs (config);
         load_wifi_config (config);
+        load_3g_config (config);
+        load_cdma_config (config);
+        load_modem_gps_config (config);
         load_network_nmea_config (config);
 }
 
@@ -409,6 +454,30 @@ gboolean
 gclue_config_get_wifi_submit_data (GClueConfig *config)
 {
         return config->priv->wifi_submit;
+}
+
+gboolean
+gclue_config_get_enable_wifi_source (GClueConfig *config)
+{
+        return config->priv->enable_wifi_source;
+}
+
+gboolean
+gclue_config_get_enable_3g_source (GClueConfig *config)
+{
+        return config->priv->enable_3g_source;
+}
+
+gboolean
+gclue_config_get_enable_modem_gps_source (GClueConfig *config)
+{
+        return config->priv->enable_modem_gps_source;
+}
+
+gboolean
+gclue_config_get_enable_cdma_source (GClueConfig *config)
+{
+        return config->priv->enable_cdma_source;
 }
 
 gboolean
