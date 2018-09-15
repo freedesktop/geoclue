@@ -332,29 +332,40 @@ gclue_locator_constructed (GObject *object)
 {
         GClueLocator *locator = GCLUE_LOCATOR (object);
         GClueLocationSource *submit_source = NULL;
-#if GCLUE_USE_NMEA_SOURCE
         GClueConfig *gconfig = gclue_config_get_singleton ();
-#endif
+        GClueWifi *wifi;
         GList *node;
         GClueMinUINT *threshold;
 
         G_OBJECT_CLASS (gclue_locator_parent_class)->constructed (object);
 
 #if GCLUE_USE_3G_SOURCE
-        GClue3G *source = gclue_3g_get_singleton ();
-        locator->priv->sources = g_list_append (locator->priv->sources, source);
+        if (gclue_config_get_enable_3g_source (gconfig)) {
+                GClue3G *source = gclue_3g_get_singleton ();
+                locator->priv->sources = g_list_append (locator->priv->sources,
+                                                        source);
+        }
 #endif
 #if GCLUE_USE_CDMA_SOURCE
-        GClueCDMA *cdma = gclue_cdma_get_singleton ();
-        locator->priv->sources = g_list_append (locator->priv->sources, cdma);
+        if (gclue_config_get_enable_cdma_source (gconfig)) {
+                GClueCDMA *cdma = gclue_cdma_get_singleton ();
+                locator->priv->sources = g_list_append (locator->priv->sources,
+                                                        cdma);
+        }
 #endif
-        GClueWifi *wifi = gclue_wifi_get_singleton (locator->priv->accuracy_level);
-        locator->priv->sources = g_list_append (locator->priv->sources,
-                                                wifi);
+        if (gclue_config_get_enable_wifi_source (gconfig))
+                wifi = gclue_wifi_get_singleton (locator->priv->accuracy_level);
+        else
+                /* City-level accuracy will give us GeoIP-only source */
+                wifi = gclue_wifi_get_singleton (GCLUE_ACCURACY_LEVEL_CITY);
+        locator->priv->sources = g_list_append (locator->priv->sources, wifi);
 #if GCLUE_USE_MODEM_GPS_SOURCE
-        GClueModemGPS *gps = gclue_modem_gps_get_singleton ();
-        locator->priv->sources = g_list_append (locator->priv->sources, gps);
-        submit_source = GCLUE_LOCATION_SOURCE (gps);
+        if (gclue_config_get_enable_modem_gps_source (gconfig)) {
+                GClueModemGPS *gps = gclue_modem_gps_get_singleton ();
+                locator->priv->sources = g_list_append (locator->priv->sources,
+                                                        gps);
+                submit_source = GCLUE_LOCATION_SOURCE (gps);
+        }
 #endif
 #if GCLUE_USE_NMEA_SOURCE
         if (gclue_config_get_enable_nmea_source (gconfig)) {
