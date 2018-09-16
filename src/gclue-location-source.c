@@ -48,6 +48,7 @@ struct _GClueLocationSourcePrivate
         GClueAccuracyLevel avail_accuracy_level;
 
         gboolean compute_movement;
+        gboolean scramble_location;
 
         GClueCompass *compass;
 
@@ -62,6 +63,7 @@ enum
         PROP_TIME_THRESHOLD,
         PROP_AVAILABLE_ACCURACY_LEVEL,
         PROP_COMPUTE_MOVEMENT,
+        PROP_SCRAMBLE_LOCATION,
         LAST_PROP
 };
 
@@ -137,6 +139,10 @@ gclue_location_source_get_property (GObject    *object,
                 g_value_set_boolean (value, source->priv->compute_movement);
                 break;
 
+        case PROP_SCRAMBLE_LOCATION:
+                g_value_set_boolean (value, source->priv->scramble_location);
+                break;
+
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         }
@@ -165,6 +171,10 @@ gclue_location_source_set_property (GObject      *object,
 
         case PROP_COMPUTE_MOVEMENT:
                 source->priv->compute_movement = g_value_get_boolean (value);
+                break;
+
+        case PROP_SCRAMBLE_LOCATION:
+                source->priv->scramble_location = g_value_get_boolean (value);
                 break;
 
         default:
@@ -247,6 +257,17 @@ gclue_location_source_class_init (GClueLocationSourceClass *klass)
         g_object_class_install_property (object_class,
                                          PROP_COMPUTE_MOVEMENT,
                                          gParamSpecs[PROP_COMPUTE_MOVEMENT]);
+
+        gParamSpecs[PROP_SCRAMBLE_LOCATION] =
+                g_param_spec_boolean ("scramble-location",
+                                      "ScrambleLocation",
+                                      "Enable location scrambling",
+                                      FALSE,
+                                      G_PARAM_READWRITE |
+                                      G_PARAM_CONSTRUCT_ONLY);
+        g_object_class_install_property (object_class,
+                                         PROP_SCRAMBLE_LOCATION,
+                                         gParamSpecs[PROP_SCRAMBLE_LOCATION]);
 }
 
 static void
@@ -355,6 +376,9 @@ gclue_location_source_get_location (GClueLocationSource *source)
         return source->priv->location;
 }
 
+/* 1 km in latitude is always .00899928005759539236 degrees */
+#define LATITUDE_IN_KM .00899928005759539236
+
 /**
  * gclue_location_source_set_location:
  * @source: a #GClueLocationSource
@@ -372,6 +396,32 @@ gclue_location_source_set_location (GClueLocationSource *source,
 
         cur_location = priv->location;
         priv->location = gclue_location_duplicate (location);
+
+        if (priv->scramble_location) {
+                gdouble latitude, distance, accuracy;
+
+                latitude = geocode_location_get_latitude
+                        (GEOCODE_LOCATION (priv->location));
+                accuracy = geocode_location_get_accuracy
+                        (GEOCODE_LOCATION (priv->location));
+
+                /* Randomization is needed to stop apps from calculationg the
+                 * actual location.
+                 */
+                distance = (gdouble) g_random_int_range (1, 3);
+
+                if (g_random_boolean ())
+                        latitude += distance * LATITUDE_IN_KM;
+                else
+                        latitude -= distance * LATITUDE_IN_KM;
+                accuracy += 3000;
+
+                g_object_set (G_OBJECT (priv->location),
+                              "latitude", latitude,
+                              "accuracy", accuracy,
+                              NULL);
+                g_debug ("location scrambled");
+        }
 
         speed = gclue_location_get_speed (location);
         if (speed == GCLUE_LOCATION_SPEED_UNKNOWN) {
