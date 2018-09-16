@@ -24,6 +24,7 @@
 #include <string.h>
 #include <config.h>
 #include "gclue-wifi.h"
+#include "gclue-config.h"
 #include "gclue-error.h"
 #include "gclue-mozilla.h"
 
@@ -458,9 +459,12 @@ static GClueAccuracyLevel
 gclue_wifi_get_available_accuracy_level (GClueWebSource *source,
                                          gboolean        net_available)
 {
+        GClueWifiPrivate *priv = GCLUE_WIFI (source)->priv;
+
         if (!net_available)
                 return GCLUE_ACCURACY_LEVEL_NONE;
-        else if (GCLUE_WIFI (source)->priv->interface != NULL)
+        else if (priv->interface != NULL &&
+                 priv->accuracy_level != GCLUE_ACCURACY_LEVEL_CITY)
                 return GCLUE_ACCURACY_LEVEL_STREET;
         else
                 return GCLUE_ACCURACY_LEVEL_CITY;
@@ -569,8 +573,12 @@ gclue_wifi_constructed (GObject *object)
 
         G_OBJECT_CLASS (gclue_wifi_parent_class)->constructed (object);
 
-        if (wifi->priv->accuracy_level == GCLUE_ACCURACY_LEVEL_CITY)
-                goto refresh_n_exit;
+        if (wifi->priv->accuracy_level == GCLUE_ACCURACY_LEVEL_CITY) {
+                GClueConfig *config = gclue_config_get_singleton ();
+
+                if (!gclue_config_get_enable_wifi_source (config))
+                        goto refresh_n_exit;
+        }
 
         /* FIXME: We should be using async variant */
         priv->supplicant = wpa_supplicant_proxy_new_for_bus_sync
@@ -629,15 +637,26 @@ gclue_wifi_get_singleton (GClueAccuracyLevel level)
 {
         static GClueWifi *wifi[] = { NULL, NULL };
         guint i;
+        gboolean scramble_location = FALSE;
 
         g_return_val_if_fail (level >= GCLUE_ACCURACY_LEVEL_CITY, NULL);
         if (level == GCLUE_ACCURACY_LEVEL_NEIGHBORHOOD)
                 level = GCLUE_ACCURACY_LEVEL_CITY;
 
-        i = (level == GCLUE_ACCURACY_LEVEL_CITY)? 0 : 1;
+        if (level == GCLUE_ACCURACY_LEVEL_CITY) {
+                GClueConfig *config = gclue_config_get_singleton ();
+
+                i = 0;
+                if (gclue_config_get_enable_wifi_source (config))
+                        scramble_location = TRUE;
+        } else {
+                i = 1;
+        }
+
         if (wifi[i] == NULL) {
                 wifi[i] = g_object_new (GCLUE_TYPE_WIFI,
                                         "accuracy-level", level,
+                                        "scramble-location", scramble_location,
                                         NULL);
                 g_object_weak_ref (G_OBJECT (wifi[i]),
                                    on_wifi_destroyed,
