@@ -77,6 +77,8 @@ guint inactivity_timeout_id = 0;
 static gboolean
 on_inactivity_timeout (gpointer user_data)
 {
+        g_message ("Service not used for %d seconds. Shutting down..",
+                   inactivity_timeout);
         g_main_loop_quit (main_loop);
 
         return FALSE;
