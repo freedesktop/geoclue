@@ -31,8 +31,10 @@
 #include "gclue-locator.h"
 #include "gclue-config.h"
 
-#define AGENT_WAIT_TIMEOUT      100    /* milliseconds */
-#define AGENT_WAIT_TIMEOUT_USEC 100000 /* microseconds */
+/* 20 seconds as milliseconds */
+#define AGENT_WAIT_TIMEOUT 20000
+/*  20 seconds as microseconds */
+#define AGENT_WAIT_TIMEOUT_USEC (20 * G_USEC_PER_SEC)
 
 static void
 gclue_service_manager_manager_iface_init (GClueDBusManagerIface *iface);
