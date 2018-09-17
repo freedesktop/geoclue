@@ -33,7 +33,7 @@
 
 /* Commandline options */
 static gboolean version = FALSE;
-static gint inactivity_timeout = 5;
+static gint inactivity_timeout = 60;
 static gboolean submit_data = FALSE;
 static char *submit_nick = NULL;
 
@@ -51,7 +51,7 @@ static GOptionEntry entries[] =
           0,
           G_OPTION_ARG_INT,
           &inactivity_timeout,
-          N_("Exit after T seconds of inactivity, 0 for never. Default: 5"),
+          N_("Exit after T seconds of inactivity, 0 for never. Default: 60"),
           "T" },
         { "submit-data",
           's',
