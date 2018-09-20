@@ -1,4 +1,9 @@
 # Configuration file for Geoclue
+#
+# NOTE: All configurations settings below are mandatory and the defaults are
+#       what you see before you edit them. If you want to keep the default
+#       values around, copy and comment out the appropriate line(s) before
+#       changing them.
 
 # Agent configuration options
 [agent]
