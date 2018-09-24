@@ -56,8 +56,7 @@ if get_option('demo-agent')
                                    install_dir: desktop_dir)
 
     # Also install in the autostart directory.
-    autostart_path = join_paths(get_option('prefix'),
-                                get_option('sysconfdir'),
+    autostart_path = join_paths(get_option('sysconfdir'),
                                 'xdg/autostart/geoclue-demo-agent.desktop')
     meson.add_install_script('install-file.py',
                              desktop_file.full_path(),
