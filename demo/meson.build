@@ -48,14 +48,10 @@ if get_option('demo-agent')
     desktop_in = configure_file(output: 'geoclue-demo-agent.desktop.in',
                                 input: 'geoclue-demo-agent.desktop.in.in',
                                 configuration: desktop_conf)
-    desktop_file = i18n.merge_file(output: 'geoclue-demo-agent.desktop',
-                                   input: desktop_in,
-                                   type: 'desktop',
-                                   po_dir: '../po',
-                                   install: true,
-                                   install_dir: desktop_dir)
-    # Also install in the autostart directory.
-    autostart_dir = get_option('sysconfdir') + '/xdg/autostart'
-    install_data(desktop_file.full_path(),
-                 install_dir: autostart_dir)
+    i18n.merge_file(output: 'geoclue-demo-agent.desktop',
+                    input: desktop_in,
+                    type: 'desktop',
+                    po_dir: '../po',
+                    install: true,
+                    install_dir: desktop_dir)
 endif
