@@ -11,12 +11,12 @@ before_script:
 
 ubuntu-16.04:
     image: ubuntu:xenial
-    script: git clone --depth 50 --recurse-submodules https://gitlab.freedesktop.org/geoclue/geoclue && cd geoclue && ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
+    script: ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
 
 ubuntu-17.10:
     image: ubuntu:artful
-    script: git clone --depth 50 --recurse-submodules https://gitlab.freedesktop.org/geoclue/geoclue && cd geoclue && ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
+    script: ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
 
 ubuntu-18.04:
     image: ubuntu:bionic
-    script: git clone --depth 50 --recurse-submodules https://gitlab.freedesktop.org/geoclue/geoclue && cd geoclue && ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
+    script: ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
