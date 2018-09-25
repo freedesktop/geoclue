@@ -14,7 +14,7 @@ ubuntu-16.04:
         when: on_failure
         name: "xenial-${CI_COMMIT_REF_NAME}"
         paths:
-            - "${CI_PROJECT_DIR}/build/meson-logs"
+            - "${CI_PROJECT_DIR}/build"
     script: meson -Dnmea-source=false -Dgtk-doc=false build && ninja -C build && ninja -C build test && ninja -C build install
 
 ubuntu-17.10:
@@ -23,7 +23,7 @@ ubuntu-17.10:
         when: on_failure
         name: "artful-${CI_COMMIT_REF_NAME}"
         paths:
-            - "${CI_PROJECT_DIR}/build/meson-logs"
+            - "${CI_PROJECT_DIR}/build"
     script: meson -Dnmea-source=false build && ninja -C build && ninja -C build test && ninja -C build install
 
 ubuntu-18.04:
@@ -32,5 +32,5 @@ ubuntu-18.04:
         when: on_failure
         name: "bionic-${CI_COMMIT_REF_NAME}"
         paths:
-            - "${CI_PROJECT_DIR}/build/meson-logs"
+            - "${CI_PROJECT_DIR}/build"
     script: meson -Dnmea-source=false build && ninja -C build && ninja -C build test && ninja -C build install
