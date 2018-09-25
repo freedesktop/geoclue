@@ -12,7 +12,7 @@ ubuntu-16.04:
         name: "xenial-${CI_COMMIT_REF_NAME}"
         paths:
             - "${CI_PROJECT_DIR}/build"
-    script: ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
+    script: ./autogen.sh && make -j && make -j check && make install
 
 ubuntu-17.10:
     image: ubuntu:artful
@@ -21,7 +21,7 @@ ubuntu-17.10:
         name: "artful-${CI_COMMIT_REF_NAME}"
         paths:
             - "${CI_PROJECT_DIR}/build"
-    script: ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
+    script: ./autogen.sh && make -j && make -j check && make install
 
 ubuntu-18.04:
     image: ubuntu:bionic
@@ -30,4 +30,4 @@ ubuntu-18.04:
         name: "bionic-${CI_COMMIT_REF_NAME}"
         paths:
             - "${CI_PROJECT_DIR}/build"
-    script: ./autogen.sh --disable-nmea-source && make -j && make -j check && make install
+    script: ./autogen.sh && make -j && make -j check && make install
