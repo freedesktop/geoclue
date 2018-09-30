@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # A simple script that copies a given file (first arg) to a given location
 # (second arg).
