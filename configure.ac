@@ -1,7 +1,7 @@
 AC_PREREQ([2.63])
 
 AC_INIT([geoclue],
-        [2.4.12],
+        [2.4.13],
         [https://gitlab.freedesktop.org/geoclue/geoclue/issues],
         [geoclue],
         [http://www.freedesktop.org/wiki/Software/GeoClue])

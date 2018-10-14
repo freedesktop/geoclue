@@ -1,3 +1,22 @@
+2.4.13
+======
+
+- Configuration file related changes:
+  - Allow absence of agent if agent white-list is empty.
+  - Add elementary-desktop-agent to whitelist.
+  - Allow disabling of all sources.
+  - Warn about use of Google's services.
+  - Document that all settings are mandatory.
+- Increase default inactivity timeout to 60s.
+- Increase agent timeout from 100ms to 20s.
+- Console message on inactivity timeout.
+- Improved and much faster CI pipelines.
+
+Contributors to this release:
+
+worldofpeace <worldofpeace@users.noreply.github.com>
+Zeeshan Ali <zeenix@collabora.co.uk>
+
 2.4.12
 ======
 
