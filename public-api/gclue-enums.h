@@ -47,6 +47,8 @@ typedef enum {/*< underscore_name=gclue_accuracy_level>*/
         GCLUE_ACCURACY_LEVEL_EXACT = 8,
 } GClueAccuracyLevel;
 
+const char *gclue_accuracy_level_get_string (GClueAccuracyLevel val);
+
 G_END_DECLS
 
 #endif /* GCLUE_ENUMS_H */
