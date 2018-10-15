@@ -16,8 +16,8 @@ sources = [ 'geocode-location.h',
             'geocode-bounding-box.c',
             'geocode-glib-private.h' ]
 
-datadir = get_option('prefix') + '/' + get_option('datadir')
-localedir = datadir + '/locale'
+datadir = join_paths(get_option('prefix'), get_option('datadir'))
+localedir = join_paths(datadir, 'locale')
 
 c_args = [ '-DPACKAGE_VERSION="' + gclue_version + '"',
            '-DGEOCODE_LOCALEDIR="' + localedir + '"' ]

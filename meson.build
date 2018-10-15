@@ -19,7 +19,7 @@ conf.set_quoted('PACKAGE_STRING', 'geoclue ' + gclue_version)
 conf.set_quoted('PACKAGE_URL', 'http://www.freedesktop.org/wiki/Software/GeoClue')
 conf.set_quoted('PACKAGE_BUGREPORT', 'http://bugs.freedesktop.org/enter_bug.cgi?product=GeoClue')
 conf.set_quoted('TEST_SRCDIR', meson.source_root() + '/data/')
-datadir = get_option('prefix') + '/' + get_option('datadir')
+datadir = join_paths(get_option('prefix'), get_option('datadir'))
 conf.set_quoted('LOCALEDIR', datadir + '/locale')
 conf.set_quoted('SYSCONFDIR', get_option('sysconfdir'))
 

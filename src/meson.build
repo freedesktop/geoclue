@@ -1,4 +1,4 @@
-dbus_interface_dir = get_option('datadir') + '/dbus-1/interfaces'
+dbus_interface_dir = join_paths(get_option('datadir'), 'dbus-1', 'interfaces')
 abs_dbus_interface_dir = join_paths(get_option('prefix'), dbus_interface_dir)
 
 subdir('agent')
@@ -129,8 +129,8 @@ executable('geoclue',
            install: true,
            install_dir: install_dir)
 
-dbus_interface = abs_dbus_interface_dir + '/org.freedesktop.GeoClue2.xml'
-agent_dbus_interface = abs_dbus_interface_dir + '/org.freedesktop.GeoClue2.Agent.xml'
+dbus_interface = join_paths(abs_dbus_interface_dir, 'org.freedesktop.GeoClue2.xml')
+agent_dbus_interface = join_paths(abs_dbus_interface_dir, 'org.freedesktop.GeoClue2.Agent.xml')
 pkgconf = import('pkgconfig')
 pkgconf.generate(version: gclue_version,
                  name: 'Geoclue',
