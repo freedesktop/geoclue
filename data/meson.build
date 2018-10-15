@@ -14,7 +14,7 @@ if get_option('enable-backend')
                    install_dir: conf_dir)
 
     conf = configuration_data()
-    conf.set('libexecdir', get_option('libexecdir'))
+    conf.set('libexecdir', join_paths(get_option('prefix'), get_option('libexecdir')))
     conf.set('dbus_srv_user', get_option('dbus-srv-user'))
 
     service_dir = get_option('datadir') + '/dbus-1/system-services'

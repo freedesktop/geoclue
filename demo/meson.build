@@ -3,7 +3,7 @@ demo_dir = get_option('libexecdir') + '/geoclue-2.0/demos'
 
 i18n = import('i18n')
 desktop_conf = configuration_data()
-desktop_conf.set('libexecdir', get_option('libexecdir'))
+desktop_conf.set('libexecdir', join_paths(get_option('prefix'), get_option('libexecdir')))
 
 if get_option('libgeoclue')
     include_dirs = [ configinc,
