@@ -1,3 +1,9 @@
+2.5.1
+=====
+
+- Fix libgeoclue ABI break in 2.5.0.
+- Use absolute paths for libexecdir.
+
 2.5.0
 =====
 
