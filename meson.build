@@ -9,6 +9,15 @@ gclue_micro_version = ver_arr[2]
 
 gclue_api_version='2.0'
 
+datadir = join_paths(get_option('prefix'), get_option('datadir'))
+includedir = join_paths(get_option('prefix'), get_option('includedir'))
+libexecdir = join_paths(get_option('prefix'), get_option('libexecdir'))
+sysconfdir = join_paths(get_option('prefix'), get_option('sysconfdir'))
+localedir = join_paths(datadir, 'locale')
+
+header_dir = 'libgeoclue-' + gclue_api_version
+include_subdir = join_paths(includedir, header_dir)
+
 conf = configuration_data()
 conf.set_quoted('VERSION', gclue_version)
 conf.set_quoted('PACKAGE_VERSION', gclue_version)
@@ -19,9 +28,8 @@ conf.set_quoted('PACKAGE_STRING', 'geoclue ' + gclue_version)
 conf.set_quoted('PACKAGE_URL', 'http://www.freedesktop.org/wiki/Software/GeoClue')
 conf.set_quoted('PACKAGE_BUGREPORT', 'http://bugs.freedesktop.org/enter_bug.cgi?product=GeoClue')
 conf.set_quoted('TEST_SRCDIR', meson.source_root() + '/data/')
-datadir = join_paths(get_option('prefix'), get_option('datadir'))
-conf.set_quoted('LOCALEDIR', join_paths(datadir, 'locale'))
-conf.set_quoted('SYSCONFDIR', join_paths(get_option('prefix'), get_option('sysconfdir')))
+conf.set_quoted('LOCALEDIR', localedir)
+conf.set_quoted('SYSCONFDIR', sysconfdir)
 
 configure_file(output: 'config.h', configuration : conf)
 configinc = include_directories('.')

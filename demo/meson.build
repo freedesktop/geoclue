@@ -1,9 +1,9 @@
-desktop_dir = join_paths(get_option('datadir'), 'applications')
-demo_dir = join_paths(get_option('libexecdir'), 'geoclue-2.0', 'demos')
+desktop_dir = join_paths(datadir, 'applications')
+demo_dir = join_paths(libexecdir, 'geoclue-2.0', 'demos')
 
 i18n = import('i18n')
 desktop_conf = configuration_data()
-desktop_conf.set('libexecdir', join_paths(get_option('prefix'), get_option('libexecdir')))
+desktop_conf.set('libexecdir', libexecdir)
 
 if get_option('libgeoclue')
     include_dirs = [ configinc,
@@ -56,9 +56,7 @@ if get_option('demo-agent')
                                    install_dir: desktop_dir)
 
     # Also install in the autostart directory.
-    autostart_dir = join_paths(get_option('prefix'),
-                               get_option('sysconfdir'),
-                               'xdg', 'autostart')
+    autostart_dir = join_paths(sysconfdir, 'xdg', 'autostart')
     meson.add_install_script('install-file.py',
                              desktop_file.full_path(),
                              autostart_dir)

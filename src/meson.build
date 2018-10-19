@@ -1,5 +1,4 @@
-dbus_interface_dir = join_paths(get_option('prefix'), get_option('datadir'),
-                                'dbus-1', 'interfaces')
+dbus_interface_dir = join_paths(datadir, 'dbus-1', 'interfaces')
 
 subdir('agent')
 
@@ -119,7 +118,6 @@ endif
 
 c_args = [ '-DG_LOG_DOMAIN="Geoclue"' ]
 link_with = [ libgeoclue_public_api, libgeoclue_agent, libgeocode_glib ]
-install_dir = get_option('libexecdir')
 executable('geoclue',
            sources,
            link_with: link_with,
@@ -127,7 +125,7 @@ executable('geoclue',
            c_args: c_args,
            dependencies: geoclue_deps,
            install: true,
-           install_dir: install_dir)
+           install_dir: libexecdir)
 
 dbus_interface = join_paths(dbus_interface_dir, 'org.freedesktop.GeoClue2.xml')
 agent_dbus_interface = join_paths(dbus_interface_dir, 'org.freedesktop.GeoClue2.Agent.xml')
