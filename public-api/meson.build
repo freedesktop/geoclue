@@ -2,7 +2,7 @@ headers = [ 'gclue-enums.h' ]
 
 header_dir = 'libgeoclue-' + gclue_api_version
 install_headers(headers, subdir: header_dir)
-install_dir = get_option('includedir') + '/' + header_dir
+install_dir = join_paths(get_option('includedir'), header_dir)
 
 libgeoclue_public_api_gen_sources = gnome.mkenums_simple(
     'gclue-enum-types',
