@@ -21,7 +21,7 @@ conf.set_quoted('PACKAGE_BUGREPORT', 'http://bugs.freedesktop.org/enter_bug.cgi?
 conf.set_quoted('TEST_SRCDIR', meson.source_root() + '/data/')
 datadir = join_paths(get_option('prefix'), get_option('datadir'))
 conf.set_quoted('LOCALEDIR', join_paths(datadir, 'locale'))
-conf.set_quoted('SYSCONFDIR', get_option('sysconfdir'))
+conf.set_quoted('SYSCONFDIR', join_paths(get_option('prefix'), get_option('sysconfdir')))
 
 configure_file(output: 'config.h', configuration : conf)
 configinc = include_directories('.')
