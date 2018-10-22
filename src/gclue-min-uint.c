@@ -120,7 +120,7 @@ gclue_min_uint_class_init (GClueMinUINTClass *klass)
 
         gParamSpecs[PROP_VALUE] = g_param_spec_uint ("value",
                                                      "Value",
-                                                     "The mininum value",
+                                                     "The minimum value",
                                                      0,
                                                      G_MAXINT,
                                                      0,
@@ -156,7 +156,7 @@ gclue_min_uint_new (void)
  * gclue_min_uint_get_value
  * @muint: a #GClueMinUINT
  *
- * Returns: The current mininum value from the list.
+ * Returns: The current minimum value from the list.
  **/
 guint
 gclue_min_uint_get_value (GClueMinUINT *muint)

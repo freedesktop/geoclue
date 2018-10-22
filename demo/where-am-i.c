@@ -134,7 +134,7 @@ on_client_active_notify (GClueClient *client,
         if (gclue_client_get_active (client))
                 return;
 
-        g_print ("Geolocation disabled. Quiting..\n");
+        g_print ("Geolocation disabled. Quitting..\n");
         on_location_timeout (NULL);
 }
 
