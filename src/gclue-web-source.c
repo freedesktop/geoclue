@@ -45,6 +45,7 @@ struct _GClueWebSourcePrivate {
         SoupMessage *query;
 
         gulong network_changed_id;
+        gulong connectivity_changed_id;
 
         guint64 last_submitted;
 
@@ -185,6 +186,14 @@ on_network_changed (GNetworkMonitor *monitor G_GNUC_UNUSED,
 }
 
 static void
+on_connectivity_changed (GObject    *gobject,
+                         GParamSpec *pspec,
+                         gpointer    user_data)
+{
+        on_network_changed (NULL, NULL, user_data);
+}
+
+static void
 gclue_web_source_finalize (GObject *gsource)
 {
         GClueWebSourcePrivate *priv = GCLUE_WEB_SOURCE (gsource)->priv;
@@ -193,6 +202,12 @@ gclue_web_source_finalize (GObject *gsource)
                 g_signal_handler_disconnect (g_network_monitor_get_default (),
                                              priv->network_changed_id);
                 priv->network_changed_id = 0;
+        }
+
+        if (priv->connectivity_changed_id) {
+                g_signal_handler_disconnect (g_network_monitor_get_default (),
+                                             priv->connectivity_changed_id);
+                priv->connectivity_changed_id = 0;
         }
 
         if (priv->query != NULL) {
@@ -226,6 +241,11 @@ gclue_web_source_constructed (GObject *object)
                 g_signal_connect (monitor,
                                   "network-changed",
                                   G_CALLBACK (on_network_changed),
+                                  object);
+        priv->connectivity_changed_id =
+                g_signal_connect (monitor,
+                                  "notify::connectivity",
+                                  G_CALLBACK (on_connectivity_changed),
                                   object);
         on_network_changed (NULL,
                             TRUE,
