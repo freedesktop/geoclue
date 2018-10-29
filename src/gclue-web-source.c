@@ -127,13 +127,11 @@ static void
 refresh_accuracy_level (GClueWebSource *web)
 {
         GClueAccuracyLevel new, existing;
-        gboolean available;
 
-        available = get_internet_available ();
         existing = gclue_location_source_get_available_accuracy_level
                         (GCLUE_LOCATION_SOURCE (web));
         new = GCLUE_WEB_SOURCE_GET_CLASS (web)->get_available_accuracy_level
-                        (web, available);
+                        (web, web->priv->internet_available);
         if (new != existing) {
                 g_debug ("Available accuracy level from %s: %u",
                          G_OBJECT_TYPE_NAME (web), new);
@@ -152,14 +150,15 @@ on_network_changed (GNetworkMonitor *monitor G_GNUC_UNUSED,
         GError *error = NULL;
         gboolean last_available = web->priv->internet_available;
 
+        web->priv->internet_available = get_internet_available ();
+        if (last_available == web->priv->internet_available)
+                return; /* We already reacted to network change */
+
         refresh_accuracy_level (web);
 
         if (!gclue_location_source_get_active (GCLUE_LOCATION_SOURCE (user_data)))
                 return;
 
-        web->priv->internet_available = get_internet_available ();
-        if (last_available == web->priv->internet_available)
-                return; /* We already reacted to network change */
         if (!web->priv->internet_available) {
                 g_debug ("Network unavailable");
                 return;
@@ -266,10 +265,10 @@ gclue_web_source_refresh (GClueWebSource *source)
 {
         g_return_if_fail (GCLUE_IS_WEB_SOURCE (source));
 
-        if (get_internet_available ()) {
-                source->priv->internet_available = FALSE;
-                on_network_changed (NULL, TRUE, source);
-        }
+        /* Make sure ->internet_available is different from
+         * the real availability of internet access */
+        source->priv->internet_available = FALSE;
+        on_network_changed (NULL, TRUE, source);
 }
 
 static gboolean
