@@ -340,7 +340,7 @@ on_agent_props_changed (GDBusProxy *agent_proxy,
                 id = gclue_dbus_client_get_desktop_id (gdbus_client);
                 max_accuracy = g_variant_get_uint32 (value);
                 system_app = (gclue_client_info_get_xdg_id
-                              (client->priv->client_info) != NULL);
+                              (client->priv->client_info) == NULL);
                 /* FIXME: We should be handling all values of max accuracy
                  *        level here, not just 0 and non-0.
                  */
