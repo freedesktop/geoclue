@@ -106,20 +106,8 @@ get_internet_available (void)
         GNetworkMonitor *monitor = g_network_monitor_get_default ();
         gboolean available;
 
-#if GLIB_CHECK_VERSION(2, 44, 0)
         available = (g_network_monitor_get_connectivity (monitor) ==
                      G_NETWORK_CONNECTIVITY_FULL);
-#else
-        GSocketConnectable *connectable;
-
-        connectable = g_network_address_new ("location.services.mozilla.com",
-                                             80);
-        available = g_network_monitor_can_reach (monitor,
-                                                 connectable,
-                                                 NULL,
-                                                 NULL);
-        g_object_unref (connectable);
-#endif
 
         return available;
 }
