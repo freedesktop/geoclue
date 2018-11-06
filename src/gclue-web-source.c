@@ -178,7 +178,7 @@ on_connectivity_changed (GObject    *gobject,
                          GParamSpec *pspec,
                          gpointer    user_data)
 {
-        on_network_changed (NULL, NULL, user_data);
+        on_network_changed (NULL, FALSE, user_data);
 }
 
 static void
