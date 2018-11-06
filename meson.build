@@ -30,6 +30,10 @@ conf.set_quoted('PACKAGE_BUGREPORT', 'http://bugs.freedesktop.org/enter_bug.cgi?
 conf.set_quoted('TEST_SRCDIR', meson.source_root() + '/data/')
 conf.set_quoted('LOCALEDIR', localedir)
 conf.set_quoted('SYSCONFDIR', sysconfdir)
+conf.set10('GCLUE_USE_3G_SOURCE', get_option('3g-source'))
+conf.set10('GCLUE_USE_CDMA_SOURCE', get_option('cdma-source'))
+conf.set10('GCLUE_USE_MODEM_GPS_SOURCE', get_option('modem-gps-source'))
+conf.set10('GCLUE_USE_NMEA_SOURCE', get_option('nmea-source'))
 
 configure_file(output: 'config.h', configuration : conf)
 configinc = include_directories('.')
