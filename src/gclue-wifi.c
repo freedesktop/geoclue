@@ -28,6 +28,11 @@
 #include "gclue-error.h"
 #include "gclue-mozilla.h"
 
+/* Since this is only used for city-level accuracy, 5 minutes betweeen each
+ * scan is more than enough.
+ */
+#define WIFI_SCAN_TIMEOUT 300
+
 /**
  * SECTION:gclue-wifi
  * @short_description: WiFi-based geolocation
@@ -49,8 +54,10 @@ struct _GClueWifiPrivate {
 
         gulong bss_added_id;
         gulong bss_removed_id;
+        gulong scan_done_id;
 
         guint refresh_timeout;
+        guint scan_timeout;
 
         GClueAccuracyLevel accuracy_level;
 };
@@ -82,6 +89,14 @@ G_DEFINE_TYPE (GClueWifi, gclue_wifi, GCLUE_TYPE_WEB_SOURCE)
 
 static void
 disconnect_bss_signals (GClueWifi *wifi);
+static void
+on_scan_call_done (GObject      *source_object,
+                   GAsyncResult *res,
+                   gpointer      user_data);
+static void
+on_scan_done (WPAInterface *object,
+              gboolean      success,
+              gpointer      user_data);
 
 static void
 gclue_wifi_finalize (GObject *gwifi)
@@ -369,6 +384,114 @@ on_bss_removed (WPAInterface *object,
 }
 
 static void
+cancel_wifi_scan (GClueWifi *wifi)
+{
+        GClueWifiPrivate *priv = wifi->priv;
+
+        if (priv->scan_timeout != 0) {
+                g_source_remove (priv->scan_timeout);
+                priv->scan_timeout = 0;
+        }
+
+        if (priv->scan_done_id != 0) {
+                g_signal_handler_disconnect (priv->interface,
+                                             priv->scan_done_id);
+                priv->scan_done_id = 0;
+        }
+}
+
+static gboolean
+on_scan_timeout (gpointer user_data)
+{
+        GClueWifi *wifi = GCLUE_WIFI (user_data);
+        GClueWifiPrivate *priv = wifi->priv;
+        GVariantBuilder builder;
+        GVariant *args;
+
+        if (priv->interface == NULL)
+                return FALSE;
+
+        g_debug ("WiFi scan timeout. Restarting-scan..");
+        priv->scan_timeout = 0;
+
+        if (priv->scan_done_id == 0)
+                priv->scan_done_id = g_signal_connect
+                                        (priv->interface,
+                                         "scan-done",
+                                         G_CALLBACK (on_scan_done),
+                                         wifi);
+
+        g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
+        g_variant_builder_add (&builder,
+                               "{sv}",
+                               "Type", g_variant_new ("s", "passive"));
+        args = g_variant_builder_end (&builder);
+
+        wpa_interface_call_scan (WPA_INTERFACE (priv->interface),
+                                 args,
+                                 NULL,
+                                 on_scan_call_done,
+                                 wifi);
+
+        return FALSE;
+}
+
+static void
+on_scan_done (WPAInterface *object,
+              gboolean      success,
+              gpointer      user_data)
+{
+        GClueWifi *wifi = GCLUE_WIFI (user_data);
+        GClueWifiPrivate *priv = wifi->priv;
+
+        if (!success) {
+                g_warning ("WiFi scan failed");
+
+                return;
+        }
+        g_debug ("WiFi scan completed");
+
+        if (priv->interface == NULL)
+                return;
+
+        gclue_web_source_refresh (GCLUE_WEB_SOURCE (wifi));
+
+        if (priv->accuracy_level >= GCLUE_ACCURACY_LEVEL_STREET)
+                /* With high-enough accuracy requests, we need to continuously
+                 * keep scanning since user's location can change quickly. With
+                 * low accuracy, we don't since we wouldn't want to drain power
+                 * unnecessarily.
+                 */
+                on_scan_timeout (wifi);
+        else
+                priv->scan_timeout = g_timeout_add_seconds (WIFI_SCAN_TIMEOUT,
+                                                            on_scan_timeout,
+                                                            wifi);
+}
+
+static void
+on_scan_call_done (GObject      *source_object,
+                   GAsyncResult *res,
+                   gpointer      user_data)
+{
+        GClueWifi *wifi = GCLUE_WIFI (user_data);
+        GError *error = NULL;
+
+        if (!wpa_interface_call_scan_finish
+                (WPA_INTERFACE (source_object),
+                 res,
+                 &error)) {
+                g_warning ("Scanning of WiFi networks failed: %s",
+                           error->message);
+                g_error_free (error);
+
+                cancel_wifi_scan (wifi);
+
+                return;
+        }
+}
+
+static void
 connect_bss_signals (GClueWifi *wifi)
 {
         GClueWifiPrivate *priv = wifi->priv;
@@ -382,6 +505,8 @@ connect_bss_signals (GClueWifi *wifi)
 
                 return;
         }
+
+        on_scan_timeout (wifi);
 
         priv->bss_added_id = g_signal_connect (priv->interface,
                                                "bss-added",
@@ -411,6 +536,7 @@ disconnect_bss_signals (GClueWifi *wifi)
         if (priv->bss_added_id == 0 || priv->interface == NULL)
                 return;
 
+        cancel_wifi_scan (wifi);
         g_signal_handler_disconnect (priv->interface, priv->bss_added_id);
         priv->bss_added_id = 0;
         g_signal_handler_disconnect (priv->interface, priv->bss_removed_id);
