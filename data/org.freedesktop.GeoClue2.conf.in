@@ -26,6 +26,11 @@
 
     <allow send_destination="fi.w1.wpa_supplicant1"
            send_interface="org.freedesktop.DBus.Introspectable"/>
+
+    <allow send_destination="fi.w1.wpa_supplicant1"
+           send_interface="fi.w1.wpa_supplicant1.Interface"
+           send_type="method_call"
+           send_member="Scan"/>
   </policy>
 
   <policy user="root">

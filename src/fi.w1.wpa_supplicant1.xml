@@ -16,12 +16,18 @@
 </interface>
 
 <interface name="fi.w1.wpa_supplicant1.Interface">
+<method name="Scan">
+  <arg name="args" type="a{sv}" direction="in"/>
+</method>
 <signal name="BSSAdded">
 <arg name="path" type="o"/>
 <arg name="properties" type="a{sv}"/>
 </signal>
 <signal name="BSSRemoved">
 <arg name="path" type="o"/>
+</signal>
+<signal name="ScanDone">
+<arg name="success" type="b"/>
 </signal>
 <property name="State" type="s" access="read"/>
 <property name="Ifname" type="s" access="read"/>
