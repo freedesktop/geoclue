@@ -15,19 +15,21 @@
 
       This is the interface you use to retrieve location information and receive
       location update signals from GeoClue service. You get the client object to
-      use this interface on from org.freedesktop.GeoClue2.Manager.GetClient()
-      method.
+      use this interface on from
+      <link linkend="gdbus-method-org-freedesktop-GeoClue2-Manager.GetClient">
+      org.freedesktop.GeoClue2.Manager.GetClient()</link> method.
   -->
   <interface name="org.freedesktop.GeoClue2.Client">
     <!--
         Location:
 
-        Current location as path to a #org.freedesktop.GeoClue2.Location object.
-        Please note that this property will be set to "/" (D-Bus equivalent of
-        null) initially, until Geoclue finds user's location. You want to delay
-        reading this property until your callback to
-        #org.freedesktop.GeoClue2.Client::LocationUpdated signal is called for
-        the first time after starting the client.
+        Current location as path to a
+        <link linkend="gdbus-org.freedesktop.GeoClue2.Location">
+        org.freedesktop.GeoClue2.Location</link> object. Please note that this
+        property will be set to "/" (D-Bus equivalent of null) initially, until
+        Geoclue finds user's location. You want to delay reading this property
+        until your callback to #org.freedesktop.GeoClue2.Client::LocationUpdated
+        signal is called for the first time after starting the client.
     -->
     <property name="Location" type="o" access="read"/>
 
