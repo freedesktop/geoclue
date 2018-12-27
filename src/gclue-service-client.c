@@ -49,7 +49,7 @@ typedef struct _StartData StartData;
 struct _GClueServiceClientPrivate
 {
         GClueClientInfo *client_info;
-        const char *path;
+        char *path;
         GDBusConnection *connection;
         GClueAgent *agent_proxy;
         StartData *pending_auth_start_data;
