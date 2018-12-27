@@ -114,9 +114,13 @@ on_peer_vanished (GClueClientInfo *info,
         l = priv->clients;
         while (l != NULL) {
                 GList *next = l->next;
+                GClueClientInfo *i;
+
+                i = gclue_service_client_get_client_info
+                        (GCLUE_SERVICE_CLIENT (l->data));
 
                 if (g_strcmp0 (bus_name,
-                               gclue_client_info_get_bus_name (info)) == 0) {
+                               gclue_client_info_get_bus_name (i)) == 0) {
                         g_object_unref (G_OBJECT (l->data));
                         priv->clients = g_list_remove_link (priv->clients, l);
                         priv->num_clients--;
