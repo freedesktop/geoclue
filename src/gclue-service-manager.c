@@ -60,8 +60,6 @@ struct _GClueServiceManagerPrivate
         gint64 init_time;
 
         GClueLocator *locator;
-
-        gboolean active;
 };
 
 enum
@@ -77,7 +75,7 @@ static GParamSpec *gParamSpecs[LAST_PROP];
 static void
 sync_in_use_property (GClueServiceManager *manager)
 {
-        gboolean in_use = FALSE, active = FALSE;
+        gboolean in_use = FALSE;
         GList *l;
         GClueDBusManager *gdbus_manager;
 
@@ -89,7 +87,6 @@ sync_in_use_property (GClueServiceManager *manager)
                 id = gclue_dbus_client_get_desktop_id (client);
                 config = gclue_config_get_singleton ();
 
-                active |= gclue_dbus_client_get_active (client);
                 if (gclue_dbus_client_get_active (client) &&
                     !gclue_config_is_system_component (config, id)) {
                         in_use = TRUE;
@@ -98,10 +95,6 @@ sync_in_use_property (GClueServiceManager *manager)
                 }
         }
 
-        if (manager->priv->active != active) {
-                manager->priv->active = active;
-                g_object_notify (G_OBJECT (manager), "active");
-        }
         gdbus_manager = GCLUE_DBUS_MANAGER (manager);
         if (in_use != gclue_dbus_manager_get_in_use (gdbus_manager))
                 gclue_dbus_manager_set_in_use (gdbus_manager, in_use);
@@ -127,6 +120,9 @@ on_peer_vanished (GClueClientInfo *info,
                         g_object_unref (G_OBJECT (l->data));
                         priv->clients = g_list_remove_link (priv->clients, l);
                         priv->num_clients--;
+                        if (priv->num_clients == 0) {
+                                g_object_notify (G_OBJECT (manager), "active");
+                        }
                 }
                 l = next;
         }
@@ -170,16 +166,15 @@ complete_get_client (OnClientInfoNewReadyData *data)
 
         priv->clients = g_list_prepend (priv->clients, client);
         priv->num_clients++;
+        if (priv->num_clients == 1) {
+                g_object_notify (G_OBJECT (data->manager), "active");
+        }
         g_debug ("Number of connected clients: %u", priv->num_clients);
 
         g_signal_connect (info,
                           "peer-vanished",
                           G_CALLBACK (on_peer_vanished),
                           data->manager);
-        g_signal_connect_swapped (client,
-                                  "notify::active",
-                                  G_CALLBACK (sync_in_use_property),
-                                  data->manager);
 
         gclue_dbus_manager_complete_get_client (data->manager,
                                                 data->invocation,
@@ -437,7 +432,7 @@ gclue_service_manager_get_property (GObject    *object,
                 break;
 
         case PROP_ACTIVE:
-                g_value_set_boolean (value, manager->priv->active);
+                g_value_set_boolean (value, (manager->priv->num_clients != 0));
                 break;
 
         default:
@@ -520,8 +515,8 @@ gclue_service_manager_class_init (GClueServiceManagerClass *klass)
         /**
          * GClueServiceManager:active:
          *
-         * Unlike the D-Bus 'InUse' property, this doesn't differentiate
-         * between system components and apps.
+         * Unlike the D-Bus 'InUse' property, this indicates wether or not
+         * currently we have connected clients.
          */
         gParamSpecs[PROP_ACTIVE] = g_param_spec_boolean ("active",
                                                          "Active",
@@ -586,5 +581,5 @@ gclue_service_manager_new (GDBusConnection *connection,
 gboolean
 gclue_service_manager_get_active (GClueServiceManager *manager)
 {
-        return manager->priv->active;
+        return (manager->priv->num_clients != 0);
 }
