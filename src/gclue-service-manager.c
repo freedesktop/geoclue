@@ -55,7 +55,7 @@ struct _GClueServiceManagerPrivate
         GList *clients;
         GHashTable *agents;
 
-        guint num_clients;
+        guint last_client_id;
         gint64 init_time;
 
         GClueLocator *locator;
@@ -157,7 +157,7 @@ complete_get_client (OnClientInfoNewReadyData *data)
                                            GINT_TO_POINTER (user_id));
 
         path = g_strdup_printf ("/org/freedesktop/GeoClue2/Client/%u",
-                                ++priv->num_clients);
+                                ++priv->last_client_id);
 
         client = gclue_service_client_new (info,
                                            path,
