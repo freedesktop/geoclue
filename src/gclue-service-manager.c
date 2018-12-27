@@ -56,6 +56,7 @@ struct _GClueServiceManagerPrivate
         GHashTable *agents;
 
         guint last_client_id;
+        guint num_clients;
         gint64 init_time;
 
         GClueLocator *locator;
@@ -125,12 +126,12 @@ on_peer_vanished (GClueClientInfo *info,
                                gclue_client_info_get_bus_name (info)) == 0) {
                         g_object_unref (G_OBJECT (l->data));
                         priv->clients = g_list_remove_link (priv->clients, l);
+                        priv->num_clients--;
                 }
                 l = next;
         }
 
-        g_debug ("Number of connected clients: %u",
-                 g_list_length (manager->priv->clients));
+        g_debug ("Number of connected clients: %u", priv->num_clients);
         sync_in_use_property (manager);
 }
 
@@ -168,8 +169,8 @@ complete_get_client (OnClientInfoNewReadyData *data)
                 goto error_out;
 
         priv->clients = g_list_prepend (priv->clients, client);
-        g_debug ("Number of connected clients: %u",
-                 g_list_length (priv->clients));
+        priv->num_clients++;
+        g_debug ("Number of connected clients: %u", priv->num_clients);
 
         g_signal_connect (info,
                           "peer-vanished",
