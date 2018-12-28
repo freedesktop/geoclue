@@ -121,6 +121,15 @@ on_peer_vanished (GClueClientInfo *info,
 
                 if (g_strcmp0 (bus_name,
                                gclue_client_info_get_bus_name (i)) == 0) {
+                        const char *id, *path;
+
+                        id = gclue_dbus_client_get_desktop_id
+                                (GCLUE_DBUS_CLIENT (l->data));
+                        path = gclue_service_client_get_path
+                                (GCLUE_SERVICE_CLIENT (l->data));
+
+                        g_debug ("Client `%s` vanished. Dropping associated "
+                                 "client object `%s`", id, path);
                         g_object_unref (G_OBJECT (l->data));
                         priv->clients = g_list_remove_link (priv->clients, l);
                         priv->num_clients--;
