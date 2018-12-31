@@ -15,8 +15,9 @@
 
       This is the interface you use to talk to main GeoClue2 manager object at
       path "/org/freedesktop/GeoClue2/Manager". The only thing you do with this
-      interface is to call org.freedesktop.GeoClue2.Manager.GetClient() on it
-      to get your application specific client object.
+      interface is to call org.freedesktop.GeoClue2.Manager.GetClient() or
+      org.freedesktop.GeoClue2.Manager.CreateClient() on it to get your
+      application specific client object(s).
   -->
   <interface name="org.freedesktop.GeoClue2.Manager">
     <!--
@@ -36,12 +37,27 @@
 
     <!--
         GetClient:
-        @client: The path for newly created client object
+        @client: The path for the client object
 
         Retrieves a client object which can only be used by the calling
-        application only.
+        application only. On the first call from a specific D-Bus peer, this
+        method will create the client object but subsequent calls will return
+        the path of the existing client.
     -->
     <method name="GetClient">
+      <arg name="client" type="o" direction="out"/>
+    </method>
+
+    <!--
+        CreateClient:
+        @client: The path for the newly created client object
+
+        Creates and retrieves a client object which can only be used by the
+        calling application only. Unlike
+        org.freedesktop.GeoClue2.Manager.GetClient(), thid method always
+        creates a new client.
+    -->
+    <method name="CreateClient">
       <arg name="client" type="o" direction="out"/>
     </method>
 

@@ -100,6 +100,18 @@ sync_in_use_property (GClueServiceManager *manager)
                 gclue_dbus_manager_set_in_use (gdbus_manager, in_use);
 }
 
+static int
+compare_client_bus_name (gconstpointer a,
+                         gconstpointer b)
+{
+        GClueClientInfo *info;
+        const char *bus_name = (const char *) b;
+
+        info = gclue_service_client_get_client_info (GCLUE_SERVICE_CLIENT (a));
+
+        return g_strcmp0 (bus_name, gclue_client_info_get_bus_name (info));
+}
+
 static void
 on_peer_vanished (GClueClientInfo *info,
                   gpointer         user_data)
@@ -114,13 +126,8 @@ on_peer_vanished (GClueClientInfo *info,
         l = priv->clients;
         while (l != NULL) {
                 GList *next = l->next;
-                GClueClientInfo *i;
 
-                i = gclue_service_client_get_client_info
-                        (GCLUE_SERVICE_CLIENT (l->data));
-
-                if (g_strcmp0 (bus_name,
-                               gclue_client_info_get_bus_name (i)) == 0) {
+                if (compare_client_bus_name (l->data, bus_name) == 0) {
                         const char *id, *path;
 
                         id = gclue_dbus_client_get_desktop_id
@@ -149,6 +156,8 @@ typedef struct
         GClueDBusManager *manager;
         GDBusMethodInvocation *invocation;
         GClueClientInfo *client_info;
+        gboolean reuse_client;
+
 } OnClientInfoNewReadyData;
 
 static gboolean
@@ -165,6 +174,25 @@ complete_get_client (OnClientInfoNewReadyData *data)
         user_id = gclue_client_info_get_user_id (info);
         agent_proxy = g_hash_table_lookup (priv->agents,
                                            GINT_TO_POINTER (user_id));
+
+        if (data->reuse_client) {
+                GList *node;
+                const char *peer;
+
+                peer = g_dbus_method_invocation_get_sender (data->invocation);
+                node = g_list_find_custom (priv->clients,
+                                           peer,
+                                           compare_client_bus_name);
+                if (node != NULL) {
+                        GClueServiceClient *client;
+
+                        client = GCLUE_SERVICE_CLIENT (node->data);
+                        path = g_strdup
+                                (gclue_service_client_get_path (client));
+
+                        goto client_created;
+                }
+        }
 
         path = g_strdup_printf ("/org/freedesktop/GeoClue2/Client/%u",
                                 ++priv->last_client_id);
@@ -189,9 +217,15 @@ complete_get_client (OnClientInfoNewReadyData *data)
                           G_CALLBACK (on_peer_vanished),
                           data->manager);
 
-        gclue_dbus_manager_complete_get_client (data->manager,
-                                                data->invocation,
-                                                path);
+client_created:
+        if (data->reuse_client)
+                gclue_dbus_manager_complete_get_client (data->manager,
+                                                        data->invocation,
+                                                        path);
+        else
+                gclue_dbus_manager_complete_create_client (data->manager,
+                                                           data->invocation,
+                                                           path);
         goto out;
 
 error_out:
@@ -254,24 +288,44 @@ on_client_info_new_ready (GObject      *source_object,
         complete_get_client (data);
 }
 
-static gboolean
-gclue_service_manager_handle_get_client (GClueDBusManager      *manager,
-                                         GDBusMethodInvocation *invocation)
+static void
+handle_get_client (GClueDBusManager      *manager,
+                   GDBusMethodInvocation *invocation,
+                   gboolean               reuse_client)
 {
         GClueServiceManager *self = GCLUE_SERVICE_MANAGER (manager);
         GClueServiceManagerPrivate *priv = self->priv;
         const char *peer;
         OnClientInfoNewReadyData *data;
 
+        peer = g_dbus_method_invocation_get_sender (invocation);
+
         data = g_slice_new (OnClientInfoNewReadyData);
         data->manager = manager;
         data->invocation = invocation;
-        peer = g_dbus_method_invocation_get_sender (invocation);
+        data->reuse_client = reuse_client;
         gclue_client_info_new_async (peer,
                                      priv->connection,
                                      NULL,
                                      on_client_info_new_ready,
                                      data);
+}
+
+static gboolean
+gclue_service_manager_handle_get_client (GClueDBusManager      *manager,
+                                         GDBusMethodInvocation *invocation)
+{
+        handle_get_client (manager, invocation, TRUE);
+
+        return TRUE;
+}
+
+static gboolean
+gclue_service_manager_handle_create_client (GClueDBusManager      *manager,
+                                            GDBusMethodInvocation *invocation)
+{
+        handle_get_client (manager, invocation, FALSE);
+
         return TRUE;
 }
 
@@ -571,6 +625,8 @@ static void
 gclue_service_manager_manager_iface_init (GClueDBusManagerIface *iface)
 {
         iface->handle_get_client = gclue_service_manager_handle_get_client;
+        iface->handle_create_client =
+                gclue_service_manager_handle_create_client;
         iface->handle_add_agent = gclue_service_manager_handle_add_agent;
 }
 
