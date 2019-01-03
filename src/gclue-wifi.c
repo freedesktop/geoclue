@@ -52,6 +52,7 @@ struct _GClueWifiPrivate {
         WPAInterface *interface;
         GHashTable *bss_proxies;
         GHashTable *ignored_bss_proxies;
+        gboolean bss_list_changed;
 
         gulong bss_added_id;
         gulong bss_removed_id;
@@ -256,6 +257,7 @@ add_bss_proxy (GClueWifi *wifi,
                                   bss)) {
                 char *ssid;
 
+                wifi->priv->bss_list_changed = TRUE;
                 ssid = get_ssid_from_bss (bss);
                 g_debug ("WiFi AP '%s' added.", ssid);
                 g_free (ssid);
@@ -354,7 +356,7 @@ on_bss_added (WPAInterface *object,
                                    user_data);
 }
 
-static void
+static gboolean
 remove_bss_from_hashtable (const gchar *path, GHashTable *hash_table)
 {
         char *ssid;
@@ -362,13 +364,15 @@ remove_bss_from_hashtable (const gchar *path, GHashTable *hash_table)
 
         bss = g_hash_table_lookup (hash_table, path);
         if (bss == NULL)
-                return;
+                return FALSE;
 
         ssid = get_ssid_from_bss (bss);
         g_debug ("WiFi AP '%s' removed.", ssid);
         g_free (ssid);
 
         g_hash_table_remove (hash_table, path);
+
+        return TRUE;
 }
 
 static void
@@ -378,7 +382,8 @@ on_bss_removed (WPAInterface *object,
 {
         GClueWifiPrivate *priv = GCLUE_WIFI (user_data)->priv;
 
-        remove_bss_from_hashtable (path, priv->bss_proxies);
+        if (remove_bss_from_hashtable (path, priv->bss_proxies))
+                priv->bss_list_changed = TRUE;
         remove_bss_from_hashtable (path, priv->ignored_bss_proxies);
 }
 
@@ -454,8 +459,11 @@ on_scan_done (WPAInterface *object,
         if (priv->interface == NULL)
                 return;
 
-        g_debug ("Refreshing location..");
-        gclue_web_source_refresh (GCLUE_WEB_SOURCE (wifi));
+        if (priv->bss_list_changed) {
+                priv->bss_list_changed = FALSE;
+                g_debug ("Refreshing location..");
+                gclue_web_source_refresh (GCLUE_WEB_SOURCE (wifi));
+        }
 
         /* With high-enough accuracy requests, we need to scan more often since
          * user's location can change quickly. With low accuracy, we don't since
@@ -510,6 +518,7 @@ connect_bss_signals (GClueWifi *wifi)
 
         on_scan_timeout (wifi);
 
+        priv->bss_list_changed = TRUE;
         priv->bss_added_id = g_signal_connect (priv->interface,
                                                "bss-added",
                                                G_CALLBACK (on_bss_added),
@@ -544,8 +553,8 @@ disconnect_bss_signals (GClueWifi *wifi)
         g_signal_handler_disconnect (priv->interface, priv->bss_removed_id);
         priv->bss_removed_id = 0;
 
-        g_hash_table_remove_all (wifi->priv->bss_proxies);
-        g_hash_table_remove_all (wifi->priv->ignored_bss_proxies);
+        g_hash_table_remove_all (priv->bss_proxies);
+        g_hash_table_remove_all (priv->ignored_bss_proxies);
 }
 
 static gboolean
