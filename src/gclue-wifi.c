@@ -472,6 +472,7 @@ on_scan_done (WPAInterface *object,
         if (priv->interface == NULL)
                 return;
 
+        g_debug ("Refreshing location..");
         gclue_web_source_refresh (GCLUE_WEB_SOURCE (wifi));
 
         if (priv->accuracy_level >= GCLUE_ACCURACY_LEVEL_STREET)
