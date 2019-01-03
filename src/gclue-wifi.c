@@ -28,10 +28,11 @@
 #include "gclue-error.h"
 #include "gclue-mozilla.h"
 
+#define WIFI_SCAN_TIMEOUT_HIGH_ACCURACY 10
 /* Since this is only used for city-level accuracy, 5 minutes betweeen each
  * scan is more than enough.
  */
-#define WIFI_SCAN_TIMEOUT 300
+#define WIFI_SCAN_TIMEOUT_LOW_ACCURACY  300
 
 /**
  * SECTION:gclue-wifi
@@ -441,6 +442,7 @@ on_scan_done (WPAInterface *object,
 {
         GClueWifi *wifi = GCLUE_WIFI (user_data);
         GClueWifiPrivate *priv = wifi->priv;
+        guint timeout;
 
         if (!success) {
                 g_warning ("WiFi scan failed");
@@ -455,17 +457,18 @@ on_scan_done (WPAInterface *object,
         g_debug ("Refreshing location..");
         gclue_web_source_refresh (GCLUE_WEB_SOURCE (wifi));
 
+        /* With high-enough accuracy requests, we need to scan more often since
+         * user's location can change quickly. With low accuracy, we don't since
+         * we wouldn't want to drain power unnecessarily.
+         */
         if (priv->accuracy_level >= GCLUE_ACCURACY_LEVEL_STREET)
-                /* With high-enough accuracy requests, we need to continuously
-                 * keep scanning since user's location can change quickly. With
-                 * low accuracy, we don't since we wouldn't want to drain power
-                 * unnecessarily.
-                 */
-                on_scan_timeout (wifi);
+                timeout = WIFI_SCAN_TIMEOUT_HIGH_ACCURACY;
         else
-                priv->scan_timeout = g_timeout_add_seconds (WIFI_SCAN_TIMEOUT,
-                                                            on_scan_timeout,
-                                                            wifi);
+                timeout = WIFI_SCAN_TIMEOUT_LOW_ACCURACY;
+        priv->scan_timeout = g_timeout_add_seconds (timeout,
+                                                    on_scan_timeout,
+                                                    wifi);
+        g_debug ("Next scan scheduled in %u seconds", timeout);
 }
 
 static void
