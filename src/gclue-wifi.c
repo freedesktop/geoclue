@@ -373,14 +373,31 @@ on_bss_added (WPAInterface *object,
 }
 
 static void
+remove_bss_from_hashtable (const gchar *path, GHashTable *hash_table)
+{
+        char *ssid;
+        WPABSS *bss = NULL;
+
+        bss = g_hash_table_lookup (hash_table, path);
+        if (bss == NULL)
+                return;
+
+        ssid = get_ssid_from_bss (bss);
+        g_debug ("WiFi AP '%s' removed.", ssid);
+        g_free (ssid);
+
+        g_hash_table_remove (hash_table, path);
+}
+
+static void
 on_bss_removed (WPAInterface *object,
                 const gchar  *path,
                 gpointer      user_data)
 {
         GClueWifiPrivate *priv = GCLUE_WIFI (user_data)->priv;
 
-        g_hash_table_remove (priv->bss_proxies, path);
-        g_hash_table_remove (priv->ignored_bss_proxies, path);
+        remove_bss_from_hashtable (path, priv->bss_proxies);
+        remove_bss_from_hashtable (path, priv->ignored_bss_proxies);
 }
 
 static void
