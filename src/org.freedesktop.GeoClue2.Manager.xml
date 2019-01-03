@@ -62,6 +62,23 @@
     </method>
 
     <!--
+        DeleteClient:
+        @client: The path of the client object to delete
+
+        Use this method to explicitly destroy a client, created using
+        org.freedesktop.GeoClue2.Manager.GetClient() or
+        org.freedesktop.GeoClue2.Manager.CreateClient().
+
+        Long-running applications, should either use this to delete associated
+        client(s) when not needed, or disconnect from the D-Bus connection used
+        for communicating with Geoclue (which is implicit on client process
+        termination). 
+    -->
+    <method name="DeleteClient">
+      <arg name="client" type="o" direction="in"/>
+    </method>
+
+    <!--
         AddAgent:
         @id: The Desktop ID (excluding .desktop) of the agent
 

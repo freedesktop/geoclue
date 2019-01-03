@@ -113,30 +113,18 @@ compare_client_bus_name (gconstpointer a,
 }
 
 static void
-on_peer_vanished (GClueClientInfo *info,
-                  gpointer         user_data)
+delete_client (GClueServiceManager *manager,
+                GCompareFunc        compare_func,
+                gpointer            compare_func_data)
 {
-        GClueServiceManager *manager = GCLUE_SERVICE_MANAGER (user_data);
         GClueServiceManagerPrivate *priv = manager->priv;
         GList *l;
-        const char *bus_name;
-
-        bus_name = gclue_client_info_get_bus_name (info);
 
         l = priv->clients;
         while (l != NULL) {
                 GList *next = l->next;
 
-                if (compare_client_bus_name (l->data, bus_name) == 0) {
-                        const char *id, *path;
-
-                        id = gclue_dbus_client_get_desktop_id
-                                (GCLUE_DBUS_CLIENT (l->data));
-                        path = gclue_service_client_get_path
-                                (GCLUE_SERVICE_CLIENT (l->data));
-
-                        g_debug ("Client `%s` vanished. Dropping associated "
-                                 "client object `%s`", id, path);
+                if (compare_func (l->data, compare_func_data) == 0) {
                         g_object_unref (G_OBJECT (l->data));
                         priv->clients = g_list_remove_link (priv->clients, l);
                         priv->num_clients--;
@@ -149,6 +137,21 @@ on_peer_vanished (GClueClientInfo *info,
 
         g_debug ("Number of connected clients: %u", priv->num_clients);
         sync_in_use_property (manager);
+}
+
+static void
+on_peer_vanished (GClueClientInfo *info,
+                  gpointer         user_data)
+{
+        const char *bus_name;
+
+        bus_name = gclue_client_info_get_bus_name (info);
+        g_debug ("Client `%s` vanished. Dropping associated client objects",
+                 bus_name);
+
+        delete_client (GCLUE_SERVICE_MANAGER (user_data),
+                       compare_client_bus_name,
+                       (char *) bus_name);
 }
 
 typedef struct
@@ -325,6 +328,51 @@ gclue_service_manager_handle_create_client (GClueDBusManager      *manager,
                                             GDBusMethodInvocation *invocation)
 {
         handle_get_client (manager, invocation, FALSE);
+
+        return TRUE;
+}
+
+typedef struct
+{
+        const char *path;
+        const char *bus_name;
+} CompareClientPathNBusNameData;
+
+static int
+compare_client_path_n_bus_name (gconstpointer a,
+                                gconstpointer b)
+{
+        GClueServiceClient *client = GCLUE_SERVICE_CLIENT (a);
+        CompareClientPathNBusNameData *data =
+                (CompareClientPathNBusNameData *) b;
+        GClueClientInfo *info;
+
+        info = gclue_service_client_get_client_info (client);
+
+        if (g_strcmp0 (data->bus_name,
+                       gclue_client_info_get_bus_name (info)) == 0 &&
+            g_strcmp0 (data->path,
+                       gclue_service_client_get_path (client)) == 0)
+                return 0;
+        else
+                return 1;
+}
+
+static gboolean
+gclue_service_manager_handle_delete_client (GClueDBusManager      *manager,
+                                            GDBusMethodInvocation *invocation,
+                                            const char            *path)
+{
+        CompareClientPathNBusNameData data;
+
+        data.path = path;
+        data.bus_name = g_dbus_method_invocation_get_sender (invocation);
+
+        delete_client (GCLUE_SERVICE_MANAGER (manager),
+                       compare_client_path_n_bus_name,
+                       &data);
+
+        gclue_dbus_manager_complete_delete_client (manager, invocation);
 
         return TRUE;
 }
@@ -627,6 +675,8 @@ gclue_service_manager_manager_iface_init (GClueDBusManagerIface *iface)
         iface->handle_get_client = gclue_service_manager_handle_get_client;
         iface->handle_create_client =
                 gclue_service_manager_handle_create_client;
+        iface->handle_delete_client =
+                gclue_service_manager_handle_delete_client;
         iface->handle_add_agent = gclue_service_manager_handle_add_agent;
 }
 
