@@ -259,11 +259,6 @@ add_bss_proxy (GClueWifi *wifi,
                WPABSS    *bss)
 {
         const char *path;
-        char *ssid;
-
-        ssid = get_ssid_from_bss (bss);
-        g_debug ("WiFi AP '%s' added.", ssid);
-        g_free (ssid);
 
         /* There could be multiple devices being added/removed at the same time
          * so we don't immediately call refresh but rather wait 1 second.
@@ -275,9 +270,15 @@ add_bss_proxy (GClueWifi *wifi,
                                                              wifi);
 
         path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (bss));
-        g_hash_table_replace (wifi->priv->bss_proxies,
-                              g_strdup (path),
-                              bss);
+        if (g_hash_table_replace (wifi->priv->bss_proxies,
+                                  g_strdup (path),
+                                  bss)) {
+                char *ssid;
+
+                ssid = get_ssid_from_bss (bss);
+                g_debug ("WiFi AP '%s' added.", ssid);
+                g_free (ssid);
+        }
 }
 
 static void
