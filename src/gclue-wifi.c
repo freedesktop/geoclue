@@ -56,7 +56,6 @@ struct _GClueWifiPrivate {
         gulong bss_removed_id;
         gulong scan_done_id;
 
-        guint refresh_timeout;
         guint scan_timeout;
 
         GClueAccuracyLevel accuracy_level;
@@ -184,16 +183,6 @@ gclue_wifi_class_init (GClueWifiClass *klass)
                                          gParamSpecs[PROP_ACCURACY_LEVEL]);
 }
 
-static gboolean
-on_refresh_timeout (gpointer user_data)
-{
-        g_debug ("Refreshing location..");
-        gclue_web_source_refresh (GCLUE_WEB_SOURCE (user_data));
-        GCLUE_WIFI (user_data)->priv->refresh_timeout = 0;
-
-        return FALSE;
-}
-
 static void
 on_bss_added (WPAInterface *object,
               const gchar  *path,
@@ -259,15 +248,6 @@ add_bss_proxy (GClueWifi *wifi,
                WPABSS    *bss)
 {
         const char *path;
-
-        /* There could be multiple devices being added/removed at the same time
-         * so we don't immediately call refresh but rather wait 1 second.
-         */
-        if (wifi->priv->refresh_timeout != 0)
-                g_source_remove (wifi->priv->refresh_timeout);
-        wifi->priv->refresh_timeout = g_timeout_add_seconds (1,
-                                                             on_refresh_timeout,
-                                                             wifi);
 
         path = g_dbus_proxy_get_object_path (G_DBUS_PROXY (bss));
         if (g_hash_table_replace (wifi->priv->bss_proxies,
@@ -560,11 +540,6 @@ disconnect_bss_signals (GClueWifi *wifi)
         priv->bss_added_id = 0;
         g_signal_handler_disconnect (priv->interface, priv->bss_removed_id);
         priv->bss_removed_id = 0;
-
-        if (priv->refresh_timeout != 0) {
-                g_source_remove (priv->refresh_timeout);
-                priv->refresh_timeout = 0;
-        }
 
         g_hash_table_remove_all (wifi->priv->bss_proxies);
         g_hash_table_remove_all (wifi->priv->ignored_bss_proxies);
