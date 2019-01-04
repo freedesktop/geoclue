@@ -30,7 +30,7 @@ gclue_service_location_initable_iface_init (GInitableIface *iface);
 struct _GClueServiceLocationPrivate
 {
         GClueClientInfo *client_info;
-        const char *path;
+        char *path;
         GDBusConnection *connection;
 };
 
