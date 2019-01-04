@@ -4,7 +4,6 @@ subdir('agent')
 
 geoclue_deps = base_deps + [ dependency('json-glib-1.0', version: '>= 0.14.0'),
                              dependency('libsoup-2.4', version: '>= 2.42.0') ]
-subdir('geocode-glib')
 
 dbus_gen_src = []
 
@@ -117,7 +116,7 @@ if get_option('nmea-source')
 endif
 
 c_args = [ '-DG_LOG_DOMAIN="Geoclue"' ]
-link_with = [ libgeoclue_public_api, libgeoclue_agent, libgeocode_glib ]
+link_with = [ libgeoclue_public_api, libgeoclue_agent ]
 executable('geoclue',
            sources,
            link_with: link_with,
