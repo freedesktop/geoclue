@@ -29,8 +29,16 @@
 #include <stdlib.h>
 
 #define TIME_DIFF_THRESHOLD 60000000 /* 60 seconds */
+#define EARTH_RADIUS_KM 6372.795
 
 struct _GClueLocationPrivate {
+        char   *description;
+
+        gdouble longitude;
+        gdouble latitude;
+        gdouble altitude;
+        gdouble accuracy;
+        guint64 timestamp;
         gdouble speed;
         gdouble heading;
 };
@@ -38,13 +46,19 @@ struct _GClueLocationPrivate {
 enum {
         PROP_0,
 
+        PROP_LATITUDE,
+        PROP_LONGITUDE,
+        PROP_ACCURACY,
+        PROP_DESCRIPTION,
+        PROP_TIMESTAMP,
+        PROP_ALTITUDE,
         PROP_SPEED,
         PROP_HEADING,
 };
 
 G_DEFINE_TYPE_WITH_CODE (GClueLocation,
                          gclue_location,
-                         GEOCODE_TYPE_LOCATION,
+                         G_TYPE_OBJECT,
                          G_ADD_PRIVATE (GClueLocation));
 
 static void
@@ -56,6 +70,35 @@ gclue_location_get_property (GObject    *object,
         GClueLocation *location = GCLUE_LOCATION (object);
 
         switch (property_id) {
+        case PROP_DESCRIPTION:
+                g_value_set_string (value,
+                                    gclue_location_get_description (location));
+                break;
+
+        case PROP_LATITUDE:
+                g_value_set_double (value,
+                                    gclue_location_get_latitude (location));
+                break;
+
+        case PROP_LONGITUDE:
+                g_value_set_double (value,
+                                    gclue_location_get_longitude (location));
+                break;
+
+        case PROP_ALTITUDE:
+                g_value_set_double (value,
+                                    gclue_location_get_altitude (location));
+                break;
+
+        case PROP_ACCURACY:
+                g_value_set_double (value,
+                                    gclue_location_get_accuracy (location));
+                break;
+
+        case PROP_TIMESTAMP:
+                g_value_set_uint64 (value,
+                                    gclue_location_get_timestamp (location));
+                break;
         case PROP_SPEED:
                 g_value_set_double (value,
                                     gclue_location_get_speed (location));
@@ -74,6 +117,59 @@ gclue_location_get_property (GObject    *object,
 }
 
 static void
+gclue_location_set_latitude (GClueLocation *loc,
+                             gdouble        latitude)
+{
+        g_return_if_fail (latitude >= -90.0 && latitude <= 90.0);
+
+        loc->priv->latitude = latitude;
+}
+
+static void
+gclue_location_set_longitude (GClueLocation *loc,
+                              gdouble        longitude)
+{
+        g_return_if_fail (longitude >= -180.0 && longitude <= 180.0);
+
+        loc->priv->longitude = longitude;
+}
+
+static void
+gclue_location_set_altitude (GClueLocation *loc,
+                             gdouble        altitude)
+{
+        loc->priv->altitude = altitude;
+}
+
+static void
+gclue_location_set_accuracy (GClueLocation *loc,
+                             gdouble        accuracy)
+{
+        g_return_if_fail (accuracy >= GCLUE_LOCATION_ACCURACY_UNKNOWN);
+
+        loc->priv->accuracy = accuracy;
+}
+
+static void
+gclue_location_set_timestamp (GClueLocation *loc,
+                              guint64        timestamp)
+{
+        g_return_if_fail (GCLUE_IS_LOCATION (loc));
+
+        loc->priv->timestamp = timestamp;
+}
+
+void
+gclue_location_set_description (GClueLocation *loc,
+                                const char    *description)
+{
+        g_return_if_fail (GCLUE_IS_LOCATION (loc));
+
+        g_free (loc->priv->description);
+        loc->priv->description = g_strdup (description);
+}
+
+static void
 gclue_location_set_property (GObject      *object,
                              guint         property_id,
                              const GValue *value,
@@ -82,6 +178,35 @@ gclue_location_set_property (GObject      *object,
         GClueLocation *location = GCLUE_LOCATION (object);
 
         switch (property_id) {
+        case PROP_DESCRIPTION:
+                gclue_location_set_description (location,
+                                                g_value_get_string (value));
+                break;
+
+        case PROP_LATITUDE:
+                gclue_location_set_latitude (location,
+                                             g_value_get_double (value));
+                break;
+
+        case PROP_LONGITUDE:
+                gclue_location_set_longitude (location,
+                                              g_value_get_double (value));
+                break;
+
+        case PROP_ALTITUDE:
+                gclue_location_set_altitude (location,
+                                             g_value_get_double (value));
+                break;
+
+        case PROP_ACCURACY:
+                gclue_location_set_accuracy (location,
+                                             g_value_get_double (value));
+                break;
+
+        case PROP_TIMESTAMP:
+                gclue_location_set_timestamp (location,
+                                              g_value_get_uint64 (value));
+                break;
         case PROP_SPEED:
                 gclue_location_set_speed (location,
                                           g_value_get_double (value));
@@ -100,8 +225,24 @@ gclue_location_set_property (GObject      *object,
 }
 
 static void
+gclue_location_constructed (GObject *object)
+{
+        GClueLocation *location = GCLUE_LOCATION (object);
+        GTimeVal tv;
+
+        if (location->priv->timestamp != 0)
+                return;
+
+        g_get_current_time (&tv);
+        gclue_location_set_timestamp (location, tv.tv_sec);
+}
+
+static void
 gclue_location_finalize (GObject *glocation)
 {
+        g_clear_pointer (&GCLUE_LOCATION (glocation)->priv->description,
+                         g_free);
+
         G_OBJECT_CLASS (gclue_location_parent_class)->finalize (glocation);
 }
 
@@ -111,9 +252,105 @@ gclue_location_class_init (GClueLocationClass *klass)
         GObjectClass *glocation_class = G_OBJECT_CLASS (klass);
         GParamSpec *pspec;
 
+        glocation_class->constructed = gclue_location_constructed;
         glocation_class->finalize = gclue_location_finalize;
         glocation_class->get_property = gclue_location_get_property;
         glocation_class->set_property = gclue_location_set_property;
+
+        /**
+         * GClueLocation:description:
+         *
+         * The description of this location.
+         */
+        pspec = g_param_spec_string ("description",
+                                     "Description",
+                                     "Description of this location",
+                                     NULL,
+                                     G_PARAM_READWRITE |
+                                     G_PARAM_STATIC_STRINGS);
+        g_object_class_install_property (glocation_class, PROP_DESCRIPTION, pspec);
+
+        /**
+         * GClueLocation:latitude:
+         *
+         * The latitude of this location in degrees.
+         */
+        pspec = g_param_spec_double ("latitude",
+                                     "Latitude",
+                                     "The latitude of this location in degrees",
+                                     -90.0,
+                                     90.0,
+                                     0.0,
+                                     G_PARAM_READWRITE |
+                                     G_PARAM_STATIC_STRINGS);
+        g_object_class_install_property (glocation_class, PROP_LATITUDE, pspec);
+
+        /**
+         * GClueLocation:longitude:
+         *
+         * The longitude of this location in degrees.
+         */
+        pspec = g_param_spec_double ("longitude",
+                                     "Longitude",
+                                     "The longitude of this location in degrees",
+                                     -180.0,
+                                     180.0,
+                                     0.0,
+                                     G_PARAM_READWRITE |
+                                     G_PARAM_STATIC_STRINGS);
+        g_object_class_install_property (glocation_class, PROP_LONGITUDE, pspec);
+
+        /**
+         * GClueLocation:altitude:
+         *
+         * The altitude of this location in meters.
+         */
+        pspec = g_param_spec_double ("altitude",
+                                     "Altitude",
+                                     "The altitude of this location in meters",
+                                     GCLUE_LOCATION_ALTITUDE_UNKNOWN,
+                                     G_MAXDOUBLE,
+                                     GCLUE_LOCATION_ALTITUDE_UNKNOWN,
+                                     G_PARAM_READWRITE |
+                                     G_PARAM_STATIC_STRINGS);
+        g_object_class_install_property (glocation_class, PROP_ALTITUDE, pspec);
+
+        /**
+         * GClueLocation:accuracy:
+         *
+         * The accuracy of this location in meters.
+         */
+        pspec = g_param_spec_double ("accuracy",
+                                     "Accuracy",
+                                     "The accuracy of this location in meters",
+                                     GCLUE_LOCATION_ACCURACY_UNKNOWN,
+                                     G_MAXDOUBLE,
+                                     GCLUE_LOCATION_ACCURACY_UNKNOWN,
+                                     G_PARAM_READWRITE |
+                                     G_PARAM_STATIC_STRINGS);
+        g_object_class_install_property (glocation_class, PROP_ACCURACY, pspec);
+
+
+        /**
+         * GClueLocation:timestamp:
+         *
+         * A timestamp in seconds since
+         * <ulink url="http://en.wikipedia.org/wiki/Unix_epoch">Epoch</ulink>,
+         * giving when the location was resolved from an address.
+         *
+         * A value of 0 (zero) will be interpreted as the current time.
+         */
+        pspec = g_param_spec_uint64 ("timestamp",
+                                     "Timestamp",
+                                     "The timestamp of this location "
+                                     "in seconds since Epoch",
+                                     0,
+                                     G_MAXINT64,
+                                     0,
+                                     G_PARAM_READWRITE |
+                                     G_PARAM_CONSTRUCT_ONLY |
+                                     G_PARAM_STATIC_STRINGS);
+        g_object_class_install_property (glocation_class, PROP_TIMESTAMP, pspec);
 
         /**
          * GClueLocation:speed
@@ -157,6 +394,8 @@ gclue_location_init (GClueLocation *location)
                                                       GCLUE_TYPE_LOCATION,
                                                       GClueLocationPrivate);
 
+        location->priv->altitude = GCLUE_LOCATION_ALTITUDE_UNKNOWN;
+        location->priv->accuracy = GCLUE_LOCATION_ACCURACY_UNKNOWN;
         location->priv->speed = GCLUE_LOCATION_SPEED_UNKNOWN;
         location->priv->heading = GCLUE_LOCATION_HEADING_UNKNOWN;
 }
@@ -229,13 +468,13 @@ parse_altitude_string (const char *altitude,
                        const char *unit)
 {
         if (altitude[0] == '\0' || unit[0] == '\0')
-                return GEOCODE_LOCATION_ALTITUDE_UNKNOWN;
+                return GCLUE_LOCATION_ALTITUDE_UNKNOWN;
 
         if (unit[0] != 'M') {
                 g_warning ("Unknown unit '%s' for altitude, ignoring..",
                            unit);
 
-                return GEOCODE_LOCATION_ALTITUDE_UNKNOWN;
+                return GCLUE_LOCATION_ALTITUDE_UNKNOWN;
         }
 
         return g_ascii_strtod (altitude, NULL);
@@ -409,7 +648,7 @@ gclue_location_create_from_gga (const char *gga, GError **error)
                                  "accuracy", accuracy,
                                  "timestamp", timestamp,
                                  NULL);
-        if (altitude != GEOCODE_LOCATION_ALTITUDE_UNKNOWN)
+        if (altitude != GCLUE_LOCATION_ALTITUDE_UNKNOWN)
                 g_object_set (location, "altitude", altitude, NULL);
 
 out:
@@ -430,20 +669,107 @@ gclue_location_duplicate (GClueLocation *location)
 {
         g_return_val_if_fail (GCLUE_IS_LOCATION (location), NULL);
 
-        GeocodeLocation *gloc = GEOCODE_LOCATION (location);
-
         return g_object_new
                 (GCLUE_TYPE_LOCATION,
-                 "description", geocode_location_get_description (gloc),
-                 "latitude", geocode_location_get_latitude (gloc),
-                 "longitude", geocode_location_get_longitude (gloc),
-                 "accuracy", geocode_location_get_accuracy (gloc),
-                 "altitude", geocode_location_get_altitude (gloc),
-                 "crs", geocode_location_get_crs (gloc),
-                 "timestamp", geocode_location_get_timestamp (gloc),
+                 "latitude", location->priv->latitude,
+                 "longitude", location->priv->longitude,
+                 "accuracy", location->priv->accuracy,
+                 "altitude", location->priv->altitude,
+                 "timestamp", location->priv->timestamp,
                  "speed", location->priv->speed,
                  "heading", location->priv->heading,
                  NULL);
+}
+
+const char *
+gclue_location_get_description (GClueLocation *loc)
+{
+        g_return_val_if_fail (GCLUE_IS_LOCATION (loc), NULL);
+
+        return loc->priv->description;
+}
+
+/**
+ * gclue_location_get_latitude:
+ * @loc: a #GClueLocation
+ *
+ * Gets the latitude of location @loc.
+ *
+ * Returns: The latitude of location @loc.
+ **/
+gdouble
+gclue_location_get_latitude (GClueLocation *loc)
+{
+        g_return_val_if_fail (GCLUE_IS_LOCATION (loc), 0.0);
+
+        return loc->priv->latitude;
+}
+
+/**
+ * gclue_location_get_longitude:
+ * @loc: a #GClueLocation
+ *
+ * Gets the longitude of location @loc.
+ *
+ * Returns: The longitude of location @loc.
+ **/
+gdouble
+gclue_location_get_longitude (GClueLocation *loc)
+{
+        g_return_val_if_fail (GCLUE_IS_LOCATION (loc), 0.0);
+
+        return loc->priv->longitude;
+}
+
+/**
+ * gclue_location_get_altitude:
+ * @loc: a #GClueLocation
+ *
+ * Gets the altitude of location @loc.
+ *
+ * Returns: The altitude of location @loc.
+ **/
+gdouble
+gclue_location_get_altitude (GClueLocation *loc)
+{
+        g_return_val_if_fail (GCLUE_IS_LOCATION (loc),
+                              GCLUE_LOCATION_ALTITUDE_UNKNOWN);
+
+        return loc->priv->altitude;
+}
+
+/**
+ * gclue_location_get_accuracy:
+ * @loc: a #GClueLocation
+ *
+ * Gets the accuracy (in meters) of location @loc.
+ *
+ * Returns: The accuracy of location @loc.
+ **/
+gdouble
+gclue_location_get_accuracy (GClueLocation *loc)
+{
+        g_return_val_if_fail (GCLUE_IS_LOCATION (loc),
+                              GCLUE_LOCATION_ACCURACY_UNKNOWN);
+
+        return loc->priv->accuracy;
+}
+
+/**
+ * gclue_location_get_timestamp:
+ * @loc: a #GClueLocation
+ *
+ * Gets the timestamp (in seconds since the Epoch) of location @loc. See
+ * #GClueLocation:timestamp.
+ *
+ * Returns: The timestamp of location @loc.
+ **/
+guint64
+gclue_location_get_timestamp (GClueLocation *loc)
+{
+        g_return_val_if_fail (GCLUE_IS_LOCATION (loc), 0);
+
+        return loc->priv->timestamp;
 }
 
 /**
@@ -493,7 +819,6 @@ gclue_location_set_speed_from_prev_location (GClueLocation *location,
 {
         gdouble speed;
         guint64 timestamp, prev_timestamp;
-        GeocodeLocation *gloc, *prev_gloc;
 
         g_return_if_fail (GCLUE_IS_LOCATION (location));
         g_return_if_fail (prev_location == NULL ||
@@ -505,11 +830,8 @@ gclue_location_set_speed_from_prev_location (GClueLocation *location,
                goto out;
         }
 
-        gloc = GEOCODE_LOCATION (location);
-        prev_gloc = GEOCODE_LOCATION (prev_location);
-
-        timestamp = geocode_location_get_timestamp (gloc);
-        prev_timestamp = geocode_location_get_timestamp (prev_gloc);
+        timestamp = gclue_location_get_timestamp (location);
+        prev_timestamp = gclue_location_get_timestamp (prev_location);
 
         if (timestamp <= prev_timestamp) {
                speed = GCLUE_LOCATION_SPEED_UNKNOWN;
@@ -517,7 +839,7 @@ gclue_location_set_speed_from_prev_location (GClueLocation *location,
                goto out;
         }
 
-        speed = geocode_location_get_distance_from (gloc, prev_gloc) *
+        speed = gclue_location_get_distance_from (location, prev_location) *
                 1000.0 / (timestamp - prev_timestamp);
 
 out:
@@ -574,7 +896,6 @@ gclue_location_set_heading_from_prev_location (GClueLocation *location,
                                                GClueLocation *prev_location)
 {
         gdouble dx, dy, angle, lat, lon, prev_lat, prev_lon;
-        GeocodeLocation *gloc, *prev_gloc;
 
         g_return_if_fail (GCLUE_IS_LOCATION (location));
         g_return_if_fail (prev_location == NULL ||
@@ -586,13 +907,10 @@ gclue_location_set_heading_from_prev_location (GClueLocation *location,
                return;
         }
 
-        gloc = GEOCODE_LOCATION (location);
-        prev_gloc = GEOCODE_LOCATION (prev_location);
-
-        lat = geocode_location_get_latitude(gloc);
-        lon = geocode_location_get_longitude(gloc);
-        prev_lat = geocode_location_get_latitude(prev_gloc);
-        prev_lon = geocode_location_get_longitude(prev_gloc);
+        lat = gclue_location_get_latitude (location);
+        lon = gclue_location_get_longitude (location);
+        prev_lat = gclue_location_get_latitude (prev_location);
+        prev_lon = gclue_location_get_longitude (prev_location);
 
         dx = (lat - prev_lat);
         dy = (lon - prev_lon);
@@ -625,4 +943,39 @@ gclue_location_set_heading_from_prev_location (GClueLocation *location,
         location->priv->heading = angle;
 
         g_object_notify (G_OBJECT (location), "heading");
+}
+
+/**
+ * gclue_location_get_distance_from:
+ * @loca: a #GClueLocation
+ * @locb: a #GClueLocation
+ *
+ * Calculates the distance in km, along the curvature of the Earth,
+ * between 2 locations. Note that altitude changes are not
+ * taken into account.
+ *
+ * Returns: a distance in km.
+ **/
+double
+gclue_location_get_distance_from (GClueLocation *loca,
+                                  GClueLocation *locb)
+{
+        gdouble dlat, dlon, lat1, lat2;
+        gdouble a, c;
+
+        g_return_val_if_fail (GCLUE_IS_LOCATION (loca), 0.0);
+        g_return_val_if_fail (GCLUE_IS_LOCATION (locb), 0.0);
+
+        /* Algorithm from:
+         * http://www.movable-type.co.uk/scripts/latlong.html */
+
+        dlat = (locb->priv->latitude - loca->priv->latitude) * M_PI / 180.0;
+        dlon = (locb->priv->longitude - loca->priv->longitude) * M_PI / 180.0;
+        lat1 = loca->priv->latitude * M_PI / 180.0;
+        lat2 = locb->priv->latitude * M_PI / 180.0;
+
+        a = sin (dlat / 2) * sin (dlat / 2) +
+            sin (dlon / 2) * sin (dlon / 2) * cos (lat1) * cos (lat2);
+        c = 2 * atan2 (sqrt (a), sqrt (1-a));
+        return EARTH_RADIUS_KM * c;
 }

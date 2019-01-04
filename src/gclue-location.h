@@ -28,7 +28,6 @@
 
 #include <glib-object.h>
 #include <gio/gio.h>
-#include "geocode-glib/geocode-location.h"
 
 G_BEGIN_DECLS
 
@@ -48,7 +47,7 @@ typedef struct _GClueLocationPrivate GClueLocationPrivate;
 struct _GClueLocation
 {
         /* Parent instance structure */
-        GeocodeLocation parent_instance;
+        GObject parent_instance;
 
         GClueLocationPrivate *priv;
 };
@@ -56,10 +55,59 @@ struct _GClueLocation
 struct _GClueLocationClass
 {
         /* Parent class structure */
-        GeocodeLocationClass parent_class;
+        GObjectClass parent_class;
 };
 
 GType gclue_location_get_type (void);
+
+/**
+ * GCLUE_LOCATION_ALTITUDE_UNKNOWN:
+ *
+ * Constant representing unknown altitude.
+ */
+#define GCLUE_LOCATION_ALTITUDE_UNKNOWN -G_MAXDOUBLE
+
+/**
+ * GCLUE_LOCATION_ACCURACY_UNKNOWN:
+ *
+ * Constant representing unknown accuracy.
+ */
+#define GCLUE_LOCATION_ACCURACY_UNKNOWN -1
+
+/**
+ * GCLUE_LOCATION_ACCURACY_STREET:
+ *
+ * Constant representing street-level accuracy.
+ */
+#define GCLUE_LOCATION_ACCURACY_STREET 1000 /* 1 km */
+
+/**
+ * GCLUE_LOCATION_ACCURACY_CITY:
+ *
+ * Constant representing city-level accuracy.
+ */
+#define GCLUE_LOCATION_ACCURACY_CITY 15000 /* 15 km */
+
+/**
+ * GCLUE_LOCATION_ACCURACY_REGION:
+ *
+ * Constant representing region-level accuracy.
+ */
+#define GCLUE_LOCATION_ACCURACY_REGION 50000 /* 50 km */
+
+/**
+ * GCLUE_LOCATION_ACCURACY_COUNTRY:
+ *
+ * Constant representing country-level accuracy.
+ */
+#define GCLUE_LOCATION_ACCURACY_COUNTRY 300000 /* 300 km */
+
+/**
+ * GCLUE_LOCATION_ACCURACY_CONTINENT:
+ *
+ * Constant representing continent-level accuracy.
+ */
+#define GCLUE_LOCATION_ACCURACY_CONTINENT 3000000 /* 3000 km */
 
 /**
  * GCLUE_LOCATION_HEADING_UNKNOWN:
@@ -96,6 +144,22 @@ GClueLocation *gclue_location_create_from_gga
 GClueLocation *gclue_location_duplicate
                                   (GClueLocation *location);
 
+void gclue_location_set_description
+                                  (GClueLocation *loc,
+                                   const char      *description);
+const char *gclue_location_get_description
+                                  (GClueLocation *loc);
+
+gdouble gclue_location_get_latitude
+                                  (GClueLocation *loc);
+gdouble gclue_location_get_longitude
+                                  (GClueLocation *loc);
+gdouble gclue_location_get_altitude
+                                  (GClueLocation *loc);
+gdouble gclue_location_get_accuracy
+                                  (GClueLocation *loc);
+guint64 gclue_location_get_timestamp
+                                  (GClueLocation *loc);
 void gclue_location_set_speed     (GClueLocation *loc,
                                    gdouble        speed);
 
@@ -115,5 +179,8 @@ void gclue_location_set_heading_from_prev_location
 
 gdouble gclue_location_get_heading
                                   (GClueLocation *loc);
+double gclue_location_get_distance_from
+                                  (GClueLocation *loca,
+                                   GClueLocation *locb);
 
 #endif /* GCLUE_LOCATION_H */

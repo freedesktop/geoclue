@@ -134,8 +134,7 @@ distance_below_threshold (GClueServiceClient *client,
         g_object_get (priv->location,
                       "location", &cur_location,
                       NULL);
-        distance = geocode_location_get_distance_from
-                (GEOCODE_LOCATION (cur_location), GEOCODE_LOCATION (location));
+        distance = gclue_location_get_distance_from (cur_location, location);
         g_object_unref (cur_location);
 
         threshold_km = priv->distance_threshold / 1000.0;
@@ -165,9 +164,8 @@ time_below_threshold (GClueServiceClient *client,
                       "location", &cur_location,
                       NULL);
 
-        cur_ts = geocode_location_get_timestamp
-                                (GEOCODE_LOCATION (cur_location));
-        ts = geocode_location_get_timestamp (GEOCODE_LOCATION (location));
+        cur_ts = gclue_location_get_timestamp (cur_location);
+        ts = gclue_location_get_timestamp (location);
         diff_ts = ABS (ts - cur_ts);
 
         g_object_unref (cur_location);

@@ -293,27 +293,27 @@ gclue_mozilla_create_submit_query (GClueLocation   *location,
 
         json_builder_begin_object (builder);
 
-        lat = geocode_location_get_latitude (GEOCODE_LOCATION (location));
+        lat = gclue_location_get_latitude (location);
         json_builder_set_member_name (builder, "lat");
         json_builder_add_double_value (builder, lat);
 
-        lon = geocode_location_get_longitude (GEOCODE_LOCATION (location));
+        lon = gclue_location_get_longitude (location);
         json_builder_set_member_name (builder, "lon");
         json_builder_add_double_value (builder, lon);
 
-        accuracy = geocode_location_get_accuracy (GEOCODE_LOCATION (location));
-        if (accuracy != GEOCODE_LOCATION_ACCURACY_UNKNOWN) {
+        accuracy = gclue_location_get_accuracy (location);
+        if (accuracy != GCLUE_LOCATION_ACCURACY_UNKNOWN) {
                 json_builder_set_member_name (builder, "accuracy");
                 json_builder_add_double_value (builder, accuracy);
         }
 
-        altitude = geocode_location_get_altitude (GEOCODE_LOCATION (location));
-        if (altitude != GEOCODE_LOCATION_ALTITUDE_UNKNOWN) {
+        altitude = gclue_location_get_altitude (location);
+        if (altitude != GCLUE_LOCATION_ALTITUDE_UNKNOWN) {
                 json_builder_set_member_name (builder, "altitude");
                 json_builder_add_double_value (builder, altitude);
         }
 
-        tv.tv_sec = geocode_location_get_timestamp (GEOCODE_LOCATION (location));
+        tv.tv_sec = gclue_location_get_timestamp (location);
         tv.tv_usec = 0;
         timestamp = g_time_val_to_iso8601 (&tv);
         json_builder_set_member_name (builder, "time");

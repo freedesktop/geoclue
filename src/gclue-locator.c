@@ -83,26 +83,24 @@ set_location (GClueLocator  *locator,
               GClueLocation *location)
 {
         GClueLocation *cur_location;
-        GeocodeLocation *gloc, *cur_gloc;
 
         cur_location = gclue_location_source_get_location
                         (GCLUE_LOCATION_SOURCE (locator));
-        gloc = GEOCODE_LOCATION (location);
-        cur_gloc = GEOCODE_LOCATION (cur_location);
 
         g_debug ("New location available");
 
         if (cur_location != NULL) {
-            if (geocode_location_get_timestamp (gloc) <
-                geocode_location_get_timestamp (cur_gloc)) {
+            if (gclue_location_get_timestamp (location) <
+                gclue_location_get_timestamp (cur_location)) {
                     g_debug ("New location older than current, ignoring.");
                     return;
             }
 
-            if (geocode_location_get_distance_from (gloc, cur_gloc) * 1000 <
-                geocode_location_get_accuracy (gloc) &&
-                geocode_location_get_accuracy (gloc) >
-                geocode_location_get_accuracy (cur_gloc)) {
+            if (gclue_location_get_distance_from (location, cur_location)
+                * 1000 <
+                gclue_location_get_accuracy (location) &&
+                gclue_location_get_accuracy (location) >
+                gclue_location_get_accuracy (cur_location)) {
                     /* We only take the new location if either the previous one
                      * lies outside its accuracy circle or its more or as
                      * accurate as previous one.

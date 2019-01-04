@@ -144,32 +144,30 @@ gclue_service_location_set_property (GObject      *object,
                 GClueDBusLocation *location;
                 GClueLocation *loc;
                 gdouble altitude;
-                GeocodeLocation *g_loc;
                 GVariant *timestamp;
 
                 location = GCLUE_DBUS_LOCATION (object);
                 loc = g_value_get_object (value);
-                g_loc = GEOCODE_LOCATION (loc);
                 gclue_dbus_location_set_latitude
-                        (location, geocode_location_get_latitude (g_loc));
+                        (location, gclue_location_get_latitude (loc));
                 gclue_dbus_location_set_longitude
-                        (location, geocode_location_get_longitude (g_loc));
+                        (location, gclue_location_get_longitude (loc));
                 gclue_dbus_location_set_accuracy
-                        (location, geocode_location_get_accuracy (g_loc));
+                        (location, gclue_location_get_accuracy (loc));
                 gclue_dbus_location_set_description
-                        (location, geocode_location_get_description (g_loc));
+                        (location, gclue_location_get_description (loc));
                 gclue_dbus_location_set_speed
                         (location, gclue_location_get_speed (loc));
                 gclue_dbus_location_set_heading
                         (location, gclue_location_get_heading (loc));
                 timestamp = g_variant_new
                         ("(tt)",
-                         (guint64) geocode_location_get_timestamp (g_loc),
+                         (guint64) gclue_location_get_timestamp (loc),
                          (guint64) 0);
                 gclue_dbus_location_set_timestamp
                         (location, timestamp);
-                altitude = geocode_location_get_altitude (g_loc);
-                if (altitude != GEOCODE_LOCATION_ALTITUDE_UNKNOWN)
+                altitude = gclue_location_get_altitude (loc);
+                if (altitude != GCLUE_LOCATION_ALTITUDE_UNKNOWN)
                         gclue_dbus_location_set_altitude (location, altitude);
                 break;
         }
@@ -354,7 +352,7 @@ gclue_service_location_init (GClueServiceLocation *location)
                                                       GCLUE_TYPE_SERVICE_LOCATION,
                                                       GClueServiceLocationPrivate);
         gclue_dbus_location_set_altitude (GCLUE_DBUS_LOCATION (location),
-                                          GEOCODE_LOCATION_ALTITUDE_UNKNOWN);
+                                          GCLUE_LOCATION_ALTITUDE_UNKNOWN);
 }
 
 static gboolean

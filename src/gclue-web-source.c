@@ -328,14 +328,13 @@ on_submit_source_location_notify (GObject    *source_object,
 
         location = gclue_location_source_get_location (source);
         if (location == NULL ||
-            geocode_location_get_accuracy (GEOCODE_LOCATION (location)) >
+            gclue_location_get_accuracy (location) >
             SUBMISSION_ACCURACY_THRESHOLD ||
-            geocode_location_get_timestamp (GEOCODE_LOCATION (location)) <
+            gclue_location_get_timestamp (location) <
             web->priv->last_submitted + SUBMISSION_TIME_THRESHOLD)
                 return;
 
-        web->priv->last_submitted = geocode_location_get_timestamp
-                (GEOCODE_LOCATION (location));
+        web->priv->last_submitted = gclue_location_get_timestamp (location);
 
         if (!get_internet_available ())
                 return;
