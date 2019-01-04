@@ -42,8 +42,10 @@ struct _GClueCDMAPrivate {
         gulong cdma_notify_id;
 };
 
-
-G_DEFINE_TYPE (GClueCDMA, gclue_cdma, GCLUE_TYPE_LOCATION_SOURCE)
+G_DEFINE_TYPE_WITH_CODE (GClueCDMA,
+                         gclue_cdma,
+                         GCLUE_TYPE_LOCATION_SOURCE,
+                         G_ADD_PRIVATE (GClueCDMA))
 
 static gboolean
 gclue_cdma_start (GClueLocationSource *source);
@@ -132,8 +134,6 @@ gclue_cdma_class_init (GClueCDMAClass *klass)
 
         source_class->start = gclue_cdma_start;
         source_class->stop = gclue_cdma_stop;
-
-        g_type_class_add_private (klass, sizeof (GClueCDMAPrivate));
 }
 
 static void

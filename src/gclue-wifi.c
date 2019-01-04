@@ -86,7 +86,10 @@ static GClueAccuracyLevel
 gclue_wifi_get_available_accuracy_level (GClueWebSource *source,
                                          gboolean        net_available);
 
-G_DEFINE_TYPE (GClueWifi, gclue_wifi, GCLUE_TYPE_WEB_SOURCE)
+G_DEFINE_TYPE_WITH_CODE (GClueWifi,
+                         gclue_wifi,
+                         GCLUE_TYPE_WEB_SOURCE,
+                         G_ADD_PRIVATE (GClueWifi))
 
 static void
 disconnect_bss_signals (GClueWifi *wifi);
@@ -170,8 +173,6 @@ gclue_wifi_class_init (GClueWifiClass *klass)
         gwifi_class->set_property = gclue_wifi_set_property;
         gwifi_class->finalize = gclue_wifi_finalize;
         gwifi_class->constructed = gclue_wifi_constructed;
-
-        g_type_class_add_private (klass, sizeof (GClueWifiPrivate));
 
         gParamSpecs[PROP_ACCURACY_LEVEL] = g_param_spec_enum ("accuracy-level",
                                                               "AccuracyLevel",

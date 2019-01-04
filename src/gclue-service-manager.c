@@ -41,14 +41,6 @@ gclue_service_manager_manager_iface_init (GClueDBusManagerIface *iface);
 static void
 gclue_service_manager_initable_iface_init (GInitableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GClueServiceManager,
-                         gclue_service_manager,
-                         GCLUE_DBUS_TYPE_MANAGER_SKELETON,
-                         G_IMPLEMENT_INTERFACE (GCLUE_DBUS_TYPE_MANAGER,
-                                                gclue_service_manager_manager_iface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                gclue_service_manager_initable_iface_init))
-
 struct _GClueServiceManagerPrivate
 {
         GDBusConnection *connection;
@@ -61,6 +53,15 @@ struct _GClueServiceManagerPrivate
 
         GClueLocator *locator;
 };
+
+G_DEFINE_TYPE_WITH_CODE (GClueServiceManager,
+                         gclue_service_manager,
+                         GCLUE_DBUS_TYPE_MANAGER_SKELETON,
+                         G_IMPLEMENT_INTERFACE (GCLUE_DBUS_TYPE_MANAGER,
+                                                gclue_service_manager_manager_iface_init)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                gclue_service_manager_initable_iface_init)
+                         G_ADD_PRIVATE (GClueServiceManager))
 
 enum
 {
@@ -614,8 +615,6 @@ gclue_service_manager_class_init (GClueServiceManagerClass *klass)
         object_class->get_property = gclue_service_manager_get_property;
         object_class->set_property = gclue_service_manager_set_property;
         object_class->constructed = gclue_service_manager_constructed;
-
-        g_type_class_add_private (object_class, sizeof (GClueServiceManagerPrivate));
 
         gParamSpecs[PROP_CONNECTION] = g_param_spec_object ("connection",
                                                             "Connection",

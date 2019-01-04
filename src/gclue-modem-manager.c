@@ -37,10 +37,6 @@
 static void
 gclue_modem_interface_init (GClueModemInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GClueModemManager, gclue_modem_manager, G_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (GCLUE_TYPE_MODEM,
-                                                gclue_modem_interface_init))
-
 struct _GClueModemManagerPrivate {
         MMManager *manager;
         MMObject *mm_object;
@@ -55,6 +51,11 @@ struct _GClueModemManagerPrivate {
 
         guint time_threshold;
 };
+
+G_DEFINE_TYPE_WITH_CODE (GClueModemManager, gclue_modem_manager, G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (GCLUE_TYPE_MODEM,
+                                                gclue_modem_interface_init)
+                         G_ADD_PRIVATE (GClueModemManager))
 
 enum
 {
@@ -209,8 +210,6 @@ gclue_modem_manager_class_init (GClueModemManagerClass *klass)
         gmodem_class->set_property = gclue_modem_manager_set_property;
         gmodem_class->finalize = gclue_modem_manager_finalize;
         gmodem_class->constructed = gclue_modem_manager_constructed;
-
-        g_type_class_add_private (klass, sizeof (GClueModemManagerPrivate));
 
         g_object_class_override_property (gmodem_class,
                                           PROP_IS_3G_AVAILABLE,

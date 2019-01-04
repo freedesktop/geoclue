@@ -54,8 +54,6 @@ gclue_locator_start (GClueLocationSource *source);
 static gboolean
 gclue_locator_stop (GClueLocationSource *source);
 
-G_DEFINE_TYPE (GClueLocator, gclue_locator, GCLUE_TYPE_LOCATION_SOURCE)
-
 struct _GClueLocatorPrivate
 {
         GList *sources;
@@ -65,6 +63,11 @@ struct _GClueLocatorPrivate
 
         guint time_threshold;
 };
+
+G_DEFINE_TYPE_WITH_CODE (GClueLocator,
+                         gclue_locator,
+                         GCLUE_TYPE_LOCATION_SOURCE,
+                         G_ADD_PRIVATE (GClueLocator))
 
 enum
 {
@@ -409,7 +412,6 @@ gclue_locator_class_init (GClueLocatorClass *klass)
         object_class->set_property = gclue_locator_set_property;
         object_class->finalize = gclue_locator_finalize;
         object_class->constructed = gclue_locator_constructed;
-        g_type_class_add_private (object_class, sizeof (GClueLocatorPrivate));
 
         gParamSpecs[PROP_ACCURACY_LEVEL] = g_param_spec_enum ("accuracy-level",
                                                               "AccuracyLevel",

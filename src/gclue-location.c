@@ -42,7 +42,10 @@ enum {
         PROP_HEADING,
 };
 
-G_DEFINE_TYPE (GClueLocation, gclue_location, GEOCODE_TYPE_LOCATION);
+G_DEFINE_TYPE_WITH_CODE (GClueLocation,
+                         gclue_location,
+                         GEOCODE_TYPE_LOCATION,
+                         G_ADD_PRIVATE (GClueLocation));
 
 static void
 gclue_location_get_property (GObject    *object,
@@ -111,8 +114,6 @@ gclue_location_class_init (GClueLocationClass *klass)
         glocation_class->finalize = gclue_location_finalize;
         glocation_class->get_property = gclue_location_get_property;
         glocation_class->set_property = gclue_location_set_property;
-
-        g_type_class_add_private (klass, sizeof (GClueLocationPrivate));
 
         /**
          * GClueLocation:speed

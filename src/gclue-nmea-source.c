@@ -51,7 +51,10 @@ struct _GClueNMEASourcePrivate {
         GList *all_services;
 };
 
-G_DEFINE_TYPE (GClueNMEASource, gclue_nmea_source, GCLUE_TYPE_LOCATION_SOURCE)
+G_DEFINE_TYPE_WITH_CODE (GClueNMEASource,
+                         gclue_nmea_source,
+                         GCLUE_TYPE_LOCATION_SOURCE,
+                         G_ADD_PRIVATE (GClueNMEASource))
 
 static gboolean
 gclue_nmea_source_start (GClueLocationSource *source);
@@ -612,8 +615,6 @@ gclue_nmea_source_class_init (GClueNMEASourceClass *klass)
 
         source_class->start = gclue_nmea_source_start;
         source_class->stop = gclue_nmea_source_stop;
-
-        g_type_class_add_private (klass, sizeof (GClueNMEASourcePrivate));
 }
 
 static void

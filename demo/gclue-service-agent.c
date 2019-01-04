@@ -40,17 +40,18 @@ gclue_service_agent_agent_iface_init (GClueAgentIface *iface);
 static void
 gclue_service_agent_constructed (GObject *object);
 
-G_DEFINE_TYPE_WITH_CODE (GClueServiceAgent,
-                         gclue_service_agent,
-                         GCLUE_TYPE_AGENT_SKELETON,
-                         G_IMPLEMENT_INTERFACE (GCLUE_TYPE_AGENT,
-                                                gclue_service_agent_agent_iface_init))
-
 struct _GClueServiceAgentPrivate
 {
         GDBusConnection *connection;
         GDBusProxy *manager_proxy;
 };
+
+G_DEFINE_TYPE_WITH_CODE (GClueServiceAgent,
+                         gclue_service_agent,
+                         GCLUE_TYPE_AGENT_SKELETON,
+                         G_IMPLEMENT_INTERFACE (GCLUE_TYPE_AGENT,
+                                                gclue_service_agent_agent_iface_init)
+                         G_ADD_PRIVATE (GClueServiceAgent))
 
 enum
 {
@@ -118,8 +119,6 @@ gclue_service_agent_class_init (GClueServiceAgentClass *klass)
         object_class->get_property = gclue_service_agent_get_property;
         object_class->set_property = gclue_service_agent_set_property;
         object_class->constructed = gclue_service_agent_constructed;
-
-        g_type_class_add_private (object_class, sizeof (GClueServiceAgentPrivate));
 
         gParamSpecs[PROP_CONNECTION] = g_param_spec_object ("connection",
                                                             "Connection",

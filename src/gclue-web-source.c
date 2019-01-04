@@ -52,7 +52,10 @@ struct _GClueWebSourcePrivate {
         gboolean internet_available;
 };
 
-G_DEFINE_ABSTRACT_TYPE (GClueWebSource, gclue_web_source, GCLUE_TYPE_LOCATION_SOURCE)
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GClueWebSource,
+                                  gclue_web_source,
+                                  GCLUE_TYPE_LOCATION_SOURCE,
+                                  G_ADD_PRIVATE (GClueWebSource))
 
 static void
 query_callback (SoupSession *session,
@@ -250,8 +253,6 @@ gclue_web_source_class_init (GClueWebSourceClass *klass)
 
         gsource_class->finalize = gclue_web_source_finalize;
         gsource_class->constructed = gclue_web_source_constructed;
-
-        g_type_class_add_private (klass, sizeof (GClueWebSourcePrivate));
 }
 
 static void

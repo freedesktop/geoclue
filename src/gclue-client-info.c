@@ -29,12 +29,6 @@
 static void
 gclue_client_info_async_initable_init (GAsyncInitableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GClueClientInfo,
-                         gclue_client_info,
-                         G_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE,
-                                                gclue_client_info_async_initable_init));
-
 struct _GClueClientInfoPrivate
 {
         char *bus_name;
@@ -45,6 +39,13 @@ struct _GClueClientInfoPrivate
         guint32 user_id;
         char *xdg_id;
 };
+
+G_DEFINE_TYPE_WITH_CODE (GClueClientInfo,
+                         gclue_client_info,
+                         G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE,
+                                                gclue_client_info_async_initable_init)
+                         G_ADD_PRIVATE (GClueClientInfo));
 
 enum
 {
@@ -134,8 +135,6 @@ gclue_client_info_class_init (GClueClientInfoClass *klass)
         object_class->finalize = gclue_client_info_finalize;
         object_class->get_property = gclue_client_info_get_property;
         object_class->set_property = gclue_client_info_set_property;
-
-        g_type_class_add_private (object_class, sizeof (GClueClientInfoPrivate));
 
         gParamSpecs[PROP_PEER] = g_param_spec_string ("bus-name",
                                                       "BusName",

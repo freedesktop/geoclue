@@ -43,7 +43,10 @@ struct _GClueModemGPSPrivate {
 };
 
 
-G_DEFINE_TYPE (GClueModemGPS, gclue_modem_gps, GCLUE_TYPE_LOCATION_SOURCE)
+G_DEFINE_TYPE_WITH_CODE (GClueModemGPS,
+                         gclue_modem_gps,
+                         GCLUE_TYPE_LOCATION_SOURCE,
+                         G_ADD_PRIVATE (GClueModemGPS))
 
 static gboolean
 gclue_modem_gps_start (GClueLocationSource *source);
@@ -144,8 +147,6 @@ gclue_modem_gps_class_init (GClueModemGPSClass *klass)
 
         source_class->start = gclue_modem_gps_start;
         source_class->stop = gclue_modem_gps_stop;
-
-        g_type_class_add_private (klass, sizeof (GClueModemGPSPrivate));
 }
 
 static void

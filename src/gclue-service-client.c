@@ -36,14 +36,6 @@ gclue_service_client_client_iface_init (GClueDBusClientIface *iface);
 static void
 gclue_service_client_initable_iface_init (GInitableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GClueServiceClient,
-                         gclue_service_client,
-                         GCLUE_DBUS_TYPE_CLIENT_SKELETON,
-                         G_IMPLEMENT_INTERFACE (GCLUE_DBUS_TYPE_CLIENT,
-                                                gclue_service_client_client_iface_init)
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                gclue_service_client_initable_iface_init));
-
 typedef struct _StartData StartData;
 
 struct _GClueServiceClientPrivate
@@ -67,6 +59,15 @@ struct _GClueServiceClientPrivate
 
         gboolean agent_stopped; /* Agent stopped client, not the app */
 };
+
+G_DEFINE_TYPE_WITH_CODE (GClueServiceClient,
+                         gclue_service_client,
+                         GCLUE_DBUS_TYPE_CLIENT_SKELETON,
+                         G_IMPLEMENT_INTERFACE (GCLUE_DBUS_TYPE_CLIENT,
+                                                gclue_service_client_client_iface_init)
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                gclue_service_client_initable_iface_init)
+                         G_ADD_PRIVATE (GClueServiceClient));
 
 enum
 {
@@ -881,8 +882,6 @@ gclue_service_client_class_init (GClueServiceClientClass *klass)
 
         skeleton_class = G_DBUS_INTERFACE_SKELETON_CLASS (klass);
         skeleton_class->get_vtable = gclue_service_client_get_vtable;
-
-        g_type_class_add_private (object_class, sizeof (GClueServiceClientPrivate));
 
         gParamSpecs[PROP_CLIENT_INFO] = g_param_spec_object ("client-info",
                                                              "ClientInfo",

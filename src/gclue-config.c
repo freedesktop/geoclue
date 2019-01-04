@@ -29,25 +29,6 @@
 
 /* This class will be responsible for fetching configuration. */
 
-G_DEFINE_TYPE (GClueConfig, gclue_config, G_TYPE_OBJECT)
-
-typedef struct
-{
-        char *id;
-        gboolean allowed;
-        gboolean system;
-        int* users;
-        gsize num_users;
-} AppConfig;
-
-static void
-app_config_free (AppConfig *app_config)
-{
-        g_free (app_config->id);
-        g_free (app_config->users);
-        g_slice_free (AppConfig, app_config);
-}
-
 struct _GClueConfigPrivate
 {
         GKeyFile *key_file;
@@ -67,6 +48,28 @@ struct _GClueConfigPrivate
 
         GList *app_configs;
 };
+
+G_DEFINE_TYPE_WITH_CODE (GClueConfig,
+                         gclue_config,
+                         G_TYPE_OBJECT,
+                         G_ADD_PRIVATE (GClueConfig))
+
+typedef struct
+{
+        char *id;
+        gboolean allowed;
+        gboolean system;
+        int* users;
+        gsize num_users;
+} AppConfig;
+
+static void
+app_config_free (AppConfig *app_config)
+{
+        g_free (app_config->id);
+        g_free (app_config->users);
+        g_slice_free (AppConfig, app_config);
+}
 
 static void
 gclue_config_finalize (GObject *object)
@@ -93,7 +96,6 @@ gclue_config_class_init (GClueConfigClass *klass)
 
         object_class = G_OBJECT_CLASS (klass);
         object_class->finalize = gclue_config_finalize;
-        g_type_class_add_private (object_class, sizeof (GClueConfigPrivate));
 }
 
 static void

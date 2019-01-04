@@ -30,14 +30,17 @@
  * @include: gclue-glib/gclue-compass.h
  **/
 
-G_DEFINE_TYPE (GClueCompass, gclue_compass, G_TYPE_OBJECT)
-
 struct _GClueCompassPrivate
 {
         Compass *proxy;
 
         GCancellable *cancellable;
 };
+
+G_DEFINE_TYPE_WITH_CODE (GClueCompass,
+                         gclue_compass,
+                         G_TYPE_OBJECT,
+                         G_ADD_PRIVATE (GClueCompass))
 
 enum
 {
@@ -100,7 +103,6 @@ gclue_compass_class_init (GClueCompassClass *klass)
         object_class = G_OBJECT_CLASS (klass);
         object_class->get_property = gclue_compass_get_property;
         object_class->finalize = gclue_compass_finalize;
-        g_type_class_add_private (object_class, sizeof (GClueCompassPrivate));
 
         /**
          * GClueCompass:heading

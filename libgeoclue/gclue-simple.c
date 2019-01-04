@@ -52,12 +52,6 @@
 static void
 gclue_simple_async_initable_init (GAsyncInitableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GClueSimple,
-                         gclue_simple,
-                         G_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE,
-                                                gclue_simple_async_initable_init));
-
 struct _GClueSimplePrivate
 {
         char *desktop_id;
@@ -71,6 +65,13 @@ struct _GClueSimplePrivate
         GTask *task;
         GCancellable *cancellable;
 };
+
+G_DEFINE_TYPE_WITH_CODE (GClueSimple,
+                         gclue_simple,
+                         G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_INITABLE,
+                                                gclue_simple_async_initable_init)
+                         G_ADD_PRIVATE (GClueSimple));
 
 enum
 {
@@ -158,8 +159,6 @@ gclue_simple_class_init (GClueSimpleClass *klass)
         object_class->finalize = gclue_simple_finalize;
         object_class->get_property = gclue_simple_get_property;
         object_class->set_property = gclue_simple_set_property;
-
-        g_type_class_add_private (object_class, sizeof (GClueSimplePrivate));
 
         /**
          * GClueSimple:desktop-id:

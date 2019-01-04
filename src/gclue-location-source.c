@@ -36,8 +36,6 @@ start_source (GClueLocationSource *source);
 static gboolean
 stop_source (GClueLocationSource *source);
 
-G_DEFINE_ABSTRACT_TYPE (GClueLocationSource, gclue_location_source, G_TYPE_OBJECT)
-
 struct _GClueLocationSourcePrivate
 {
         GClueLocation *location;
@@ -54,6 +52,11 @@ struct _GClueLocationSourcePrivate
 
         guint heading_changed_id;
 };
+
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GClueLocationSource,
+                                  gclue_location_source,
+                                  G_TYPE_OBJECT,
+                                  G_ADD_PRIVATE (GClueLocationSource))
 
 enum
 {
@@ -205,7 +208,6 @@ gclue_location_source_class_init (GClueLocationSourceClass *klass)
         object_class->get_property = gclue_location_source_get_property;
         object_class->set_property = gclue_location_source_set_property;
         object_class->finalize = gclue_location_source_finalize;
-        g_type_class_add_private (object_class, sizeof (GClueLocationSourcePrivate));
 
         gParamSpecs[PROP_LOCATION] = g_param_spec_object ("location",
                                                           "Location",

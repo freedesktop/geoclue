@@ -45,7 +45,10 @@ struct _GClue3GPrivate {
         GClue3GTower *tower;
 };
 
-G_DEFINE_TYPE (GClue3G, gclue_3g, GCLUE_TYPE_WEB_SOURCE)
+G_DEFINE_TYPE_WITH_CODE (GClue3G,
+                         gclue_3g,
+                         GCLUE_TYPE_WEB_SOURCE,
+                         G_ADD_PRIVATE (GClue3G))
 
 static gboolean
 gclue_3g_start (GClueLocationSource *source);
@@ -142,8 +145,6 @@ gclue_3g_class_init (GClue3GClass *klass)
         web_class->parse_response = gclue_3g_parse_response;
         web_class->get_available_accuracy_level =
                 gclue_3g_get_available_accuracy_level;
-
-        g_type_class_add_private (klass, sizeof (GClue3GPrivate));
 }
 
 static void

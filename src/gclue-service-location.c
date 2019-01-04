@@ -27,18 +27,19 @@
 static void
 gclue_service_location_initable_iface_init (GInitableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GClueServiceLocation,
-                         gclue_service_location,
-                         GCLUE_DBUS_TYPE_LOCATION_SKELETON,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                gclue_service_location_initable_iface_init));
-
 struct _GClueServiceLocationPrivate
 {
         GClueClientInfo *client_info;
         const char *path;
         GDBusConnection *connection;
 };
+
+G_DEFINE_TYPE_WITH_CODE (GClueServiceLocation,
+                         gclue_service_location,
+                         GCLUE_DBUS_TYPE_LOCATION_SKELETON,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                gclue_service_location_initable_iface_init)
+                         G_ADD_PRIVATE (GClueServiceLocation));
 
 enum
 {
@@ -305,8 +306,6 @@ gclue_service_location_class_init (GClueServiceLocationClass *klass)
 
         skeleton_class = G_DBUS_INTERFACE_SKELETON_CLASS (klass);
         skeleton_class->get_vtable = gclue_service_location_get_vtable;
-
-        g_type_class_add_private (object_class, sizeof (GClueServiceLocationPrivate));
 
         gParamSpecs[PROP_CLIENT_INFO] = g_param_spec_object ("client-info",
                                                              "ClientInfo",
