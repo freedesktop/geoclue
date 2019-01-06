@@ -1,3 +1,36 @@
+2.5.2
+=====
+
+- Scan for WiFi networks, greatly improving accuracy of WiFi source.
+- Allow multiple clients on the same D-Bus connection and add API for it. This
+  is mainly targetted for Flatpak location portal.
+- Add API for apps to explicitly delete their client objects. Long running
+  apps, like gnome-settings-daemon and Flatpak location portal, should use that
+  to ensure Geoclue knows when these apps are not actually using it and hence
+  it doesn't need to keep running needlessly.
+- Restore accidently removed, build of modem sources.
+- Update location on connectivity actually changing.
+- Try not spamming Mozilla Location Service.
+- Fix unexpected exit when non-active clients are connected.
+- Fix a check for system apps.
+- Use absolute paths for sysconfdir.
+- Fix links in docs.
+- More debug log.
+- A bunch of internal and/or non-functional fixes & improvements.
+
+Dependency-related changes:
+
+- Require glib >= 2.44.
+
+Contributors:
+
+Bastien Nocera <hadess@hadess.net>
+Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+Laurent Bigonville <bigon@bigon.be>
+Valentin Blot <freedesktop-devel@valentinblot.org>
+Will Thompson <will@willthompson.co.uk>
+Zeeshan Ali <zeenix@collabora.co.uk>
+
 2.5.1
 =====
 
