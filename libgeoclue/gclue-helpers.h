@@ -42,6 +42,20 @@ GClueClient *   gclue_client_proxy_create_sync   (const char         *desktop_id
                                                   GCancellable       *cancellable,
                                                   GError            **error);
 
+void            gclue_client_proxy_create_full        (const char                   *desktop_id,
+                                                       GClueAccuracyLevel            accuracy_level,
+                                                       GClueClientProxyCreateFlags   flags,
+                                                       GCancellable                 *cancellable,
+                                                       GAsyncReadyCallback           callback,
+                                                       gpointer                      user_data);
+GClueClient *   gclue_client_proxy_create_full_finish (GAsyncResult                 *result,
+                                                       GError                      **error);
+GClueClient *   gclue_client_proxy_create_full_sync   (const char                   *desktop_id,
+                                                       GClueAccuracyLevel            accuracy_level,
+                                                       GClueClientProxyCreateFlags  flags,
+                                                       GCancellable                 *cancellable,
+                                                       GError                      **error);
+
 G_END_DECLS
 
 #endif /* #ifndef __GCLUE_HELPERS_H__*/

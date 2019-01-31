@@ -49,6 +49,18 @@ typedef enum {/*< underscore_name=gclue_accuracy_level>*/
 
 const char *gclue_accuracy_level_get_string (GClueAccuracyLevel val);
 
+/**
+ * GClueClientProxyCreateFlags:
+ * @GCLUE_CLIENT_PROXY_CREATE_NONE: Empty set of create flags
+ * @GCLUE_CLIENT_PROXY_CREATE_AUTO_DELETE:
+ *      Automatically delete the client from the server when the #GClueClient is
+ *      destroyed. This flag should usually be set.
+ **/
+typedef enum {/*< underscore_name=gclue_client_proxy_create_flags>*/
+        GCLUE_CLIENT_PROXY_CREATE_NONE        = 0,
+        GCLUE_CLIENT_PROXY_CREATE_AUTO_DELETE = 1 << 0,
+} GClueClientProxyCreateFlags;
+
 G_END_DECLS
 
 #endif /* GCLUE_ENUMS_H */
