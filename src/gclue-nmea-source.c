@@ -482,8 +482,13 @@ on_read_gga_sentence (GObject      *object,
         }
         g_debug ("Network source sent: \"%s\"", message);
 
-        if (!g_str_has_prefix (message, "$GPGGA")) {
-                /* FIXME: Handle other useful NMEA sentences too */
+        if (!g_str_has_prefix (message, "$GAGGA") &&  /* Galieo */
+            !g_str_has_prefix (message, "$GBGGA") &&  /* BeiDou */
+            !g_str_has_prefix (message, "$BDGGA") &&  /* BeiDou */
+            !g_str_has_prefix (message, "$GLGGA") &&  /* GLONASS */
+            !g_str_has_prefix (message, "$GNGGA") &&  /* GNSS (combined) */
+            !g_str_has_prefix (message, "$GPGGA") &&  /* GPS, SBAS, QZSS */
+            !g_str_has_prefix (message, "$QZGGA")) {  /* QZSS */
                 g_debug ("Ignoring non-GGA sentence from NMEA source");
 
                 goto READ_NEXT_LINE;
