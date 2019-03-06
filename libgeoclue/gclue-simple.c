@@ -308,7 +308,7 @@ on_client_created (GObject      *source_object,
         GClueSimplePrivate *priv = simple->priv;
         GError *error = NULL;
 
-        priv->client = gclue_client_proxy_create_finish (res, &error);
+        priv->client = gclue_client_proxy_create_full_finish (res, &error);
         if (error != NULL) {
                 g_task_return_error (task, error);
                 g_clear_object (&priv->task);
@@ -341,11 +341,12 @@ gclue_simple_init_async (GAsyncInitable     *initable,
 
         task = g_task_new (initable, cancellable, callback, user_data);
 
-        gclue_client_proxy_create (simple->priv->desktop_id,
-                                   simple->priv->accuracy_level,
-                                   cancellable,
-                                   on_client_created,
-                                   task);
+        gclue_client_proxy_create_full (simple->priv->desktop_id,
+                                        simple->priv->accuracy_level,
+                                        GCLUE_CLIENT_PROXY_CREATE_AUTO_DELETE,
+                                        cancellable,
+                                        on_client_created,
+                                        task);
 }
 
 static gboolean
