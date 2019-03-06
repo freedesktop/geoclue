@@ -52,6 +52,11 @@ libgeoclue = library('geoclue-2',
                      version: '0.0.0',
                      install: true)
 
+libgeoclue_dep = declare_dependency(link_with: libgeoclue,
+                                    include_directories: include_dirs,
+                                    dependencies: base_deps,
+                                    sources: [ libgeoclue_sources, libgeoclue_headers ])
+
 gir = find_program('g-ir-scanner', required: false)
 vapigen = find_program('vapigen', required: false)
 enable_gir = get_option('introspection')
@@ -68,9 +73,8 @@ if gir.found() and enable_gir
                                identifier_prefix: 'GClue',
                                symbol_prefix: 'gclue',
                                export_packages: 'libgeoclue-' + gclue_api_version,
-                               dependencies: base_deps,
+                               dependencies: [libgeoclue_dep] + base_deps,
                                includes: [ 'GObject-2.0', 'Gio-2.0' ],
-                               include_directories: include_dirs,
                                install: true,
                                header: 'geoclue.h',
                                extra_args: [ '--quiet' ])
@@ -92,7 +96,3 @@ pkgconf.generate(version: gclue_version,
                  subdirs: [ header_dir ],
                  requires: pkg_requirements)
 
-libgeoclue_dep = declare_dependency(link_with: libgeoclue,
-                                    include_directories: include_dirs,
-                                    dependencies: base_deps,
-                                    sources: [ libgeoclue_sources, libgeoclue_headers ])
