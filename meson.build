@@ -72,6 +72,8 @@ if get_option('gtk-doc') and get_option('libgeoclue')
   subdir('docs')
 endif
 
+systemd_unit_dir = 'N/A'
+
 # FIXME: Remove this once meson does it itself: https://github.com/mesonbuild/meson/issues/757
 summary = '''
         GeoClue @0@
