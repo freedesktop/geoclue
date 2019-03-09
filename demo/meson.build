@@ -29,18 +29,16 @@ endif
 
 if get_option('demo-agent')
     include_dirs = [ configinc,
-                     libgeoclue_public_api_inc,
-                     libgeoclue_agent_inc ]
+                     libgeoclue_public_api_inc ]
 
     sources = [ 'gclue-service-agent.h',
                 'gclue-service-agent.c',
                 'agent.c',
-                libgeoclue_agent_sources[1] ]
+                 geoclue_agent_sources ]
     deps = base_deps + [ dependency('libnotify') ]
     executable('agent',
                sources,
                include_directories: include_dirs,
-               link_whole: [ libgeoclue_agent ],
                dependencies: deps,
                install: true,
                install_dir: demo_dir)

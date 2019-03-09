@@ -9,8 +9,7 @@ version_file = configure_file(output: 'version.xml',
                               configuration: conf)
 
 content_files = [ '../COPYING',
-                  dbus_gen_src,
-                  libgeoclue_agent_sources ]
+                  geoclue_iface_sources ]
 scan_options = [ '--ignore-headers=config.h',
                  '--rebuild-sections',
                  '--rebuild-types' ]

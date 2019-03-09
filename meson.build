@@ -50,6 +50,7 @@ if libm.found()
 endif
 
 subdir('public-api')
+subdir('interface')
 if get_option('enable-backend')
     subdir('src')
 endif

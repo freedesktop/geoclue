@@ -1,24 +1,29 @@
 # Client interface
-gclue_client = gnome.gdbus_codegen('gclue-client',
-                               '../src/org.freedesktop.GeoClue2.Client.xml',
-                               interface_prefix: 'org.freedesktop.GeoClue2.',
-                               namespace: 'GClue',
-                               install_header: true,
-                               install_dir: include_subdir)
+gclue_client = gnome.gdbus_codegen(
+    'gclue-client',
+    '../interface/org.freedesktop.GeoClue2.Client.xml',
+    interface_prefix: 'org.freedesktop.GeoClue2.',
+    namespace: 'GClue',
+    install_header: true,
+    install_dir: include_subdir)
+
 # Location interface
-gclue_location = gnome.gdbus_codegen('gclue-location',
-                               '../src/org.freedesktop.GeoClue2.Location.xml',
-                               interface_prefix: 'org.freedesktop.GeoClue2.',
-                               namespace: 'GClue',
-                               install_header: true,
-                               install_dir: include_subdir)
+gclue_location = gnome.gdbus_codegen(
+    'gclue-location',
+    '../interface/org.freedesktop.GeoClue2.Location.xml',
+    interface_prefix: 'org.freedesktop.GeoClue2.',
+    namespace: 'GClue',
+    install_header: true,
+    install_dir: include_subdir)
+
 # Manager interface
-gclue_manager = gnome.gdbus_codegen('gclue-manager',
-                               '../src/org.freedesktop.GeoClue2.Manager.xml',
-                               interface_prefix: 'org.freedesktop.GeoClue2.',
-                               namespace: 'GClue',
-                               install_header: true,
-                               install_dir: include_subdir)
+gclue_manager = gnome.gdbus_codegen(
+    'gclue-manager',
+    '../interface/org.freedesktop.GeoClue2.Manager.xml',
+    interface_prefix: 'org.freedesktop.GeoClue2.',
+    namespace: 'GClue',
+    install_header: true,
+    install_dir: include_subdir)
 
 libgeoclue_sources = files('gclue-helpers.c', 'gclue-simple.c')
 libgeoclue_sources += gclue_client[0]
