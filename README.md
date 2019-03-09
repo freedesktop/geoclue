@@ -8,7 +8,4 @@ Geoclue is Free Software, licensed under GNU GPLv2+.
 
 # Troubleshooting and known limitations
 
-  * GeoClue requires Glib >= 2.44.0 which should make it hard to build to Ubuntu
-14.04. It's currently not supported, but all maintained Ubuntu versions >= 16.04
-are.
-
+  * GeoClue requires glib >= 2.44.0, which is not available on Ubuntu 14.04.
