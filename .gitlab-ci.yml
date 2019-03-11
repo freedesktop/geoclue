@@ -34,3 +34,12 @@ ubuntu-18.04:
         paths:
             - "${CI_PROJECT_DIR}/build"
     script: meson build && ninja -C build && ninja -C build test && ninja -C build install
+
+ubuntu-18.04-no-backend:
+    image: ubuntu:bionic
+    artifacts:
+        when: always
+        name: "bionic-no-backend-${CI_COMMIT_REF_NAME}"
+        paths:
+            - "${CI_PROJECT_DIR}/build"
+    script: meson -Denable-backend=false build && ninja -C build && ninja -C build test && ninja -C build install
