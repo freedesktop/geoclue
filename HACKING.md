@@ -29,8 +29,8 @@
     Fedora:
     
     ```shell
-    sudo dnf install ModemManager
-    sudo dnf install avahi-client
+    sudo dnf install ModemManager-devel
+    sudo dnf install avahi-devel
     sudo dnf install avahi-glib
     ```
     
