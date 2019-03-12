@@ -46,7 +46,7 @@
 - [Install meson](https://mesonbuild.com/Getting-meson.html).
 
 - Ensure you have a geoclue user on your system. If it already exists, you may
-  need to modify ``/etc/passwd`` file to make it a login user account.
+  need to modify `/etc/passwd` file to make it a login user account.
 
 - Build and install geoclue.
 
@@ -64,7 +64,7 @@
   G_MESSAGES_DEBUG=Geoclue /usr/libexec/geoclue
   ```
 
-  If you get the following error, make sure ``geoclue`` process is not already
+  If you get the following error, make sure `geoclue` process is not already
   running:
 
   ```
