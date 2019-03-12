@@ -67,7 +67,9 @@
     If you get the following error, make sure ``geoclue`` process is not already
     running:
 
+    ```
     > Failed to acquire name 'org.freedesktop.GeoClue2' on system bus or lost it
+    ```
 
 - Test
 
