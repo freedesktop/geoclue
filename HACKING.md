@@ -71,7 +71,7 @@
   > Failed to acquire name 'org.freedesktop.GeoClue2' on system bus or lost it
   ```
 
-- Test
+- Now you can test if Geoclue is running and working:
 
   ```shell
   /usr/libexec/geoclue-2.0/demos/where-am-i
