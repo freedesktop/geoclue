@@ -4,11 +4,9 @@
   is already included in your distro/OS, you should be able to use the 
   package manager's command to install all build depedndancies.
     
-    * gio-2.0
-    * gio-unix-2.0
-    * gobject-introspection-1.0
-    * glib-2.0 (>= 2.34.0)
-    * json-glib-1.0
+    * gio (>= 2.44.0)
+    * gobject-introspection
+    * json-glib
     * libsoup2.4 (>= 2.42)
     * pkg-config
 
