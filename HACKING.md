@@ -22,9 +22,10 @@
   sudo apt build-dep geoclue-2.0
   ```
 
-- For a full-fledged build, you also want ModemManager (mm-glib) and
-  avahi-client and avahi-glib. You want the latter two if you want to use the
-  [geoclue-share app](https://wiki.gnome.org/Apps/GeoclueShare).
+- For a full-fledged build, you also want ModemManager (mm-glib), 
+  avahi-client and avahi-glib. You want the latter two if you want to use the 
+  [geoclue-share app](https://wiki.gnome.org/Apps/GeoclueShare). You also need 
+  libnotify if you want to build the demo agent.
 
   Fedora:
 
@@ -37,9 +38,9 @@
   Debian and Ubuntu:
 
   ```shell
-  sudo apt install modemmanager
-  sudo apt install libavahi-client3
-  sudo apt install libavahi-glib1
+  sudo apt install modemmanager-dev
+  sudo apt install libavahi-client-dev
+  sudo apt install libavahi-glib-dev
   sudo apt install libnotify-dev
   ```
 
