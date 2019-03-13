@@ -31,7 +31,7 @@
   ```shell
   sudo dnf install ModemManager-devel
   sudo dnf install avahi-devel
-  sudo dnf install avahi-glib
+  sudo dnf install avahi-glib-devel
   ```
 
   Debian and Ubuntu:
