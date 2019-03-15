@@ -33,6 +33,7 @@
   sudo dnf install ModemManager-devel
   sudo dnf install avahi-devel
   sudo dnf install avahi-glib-devel
+  sudo dnf install libnotify-devel
   ```
 
   Debian and Ubuntu:
