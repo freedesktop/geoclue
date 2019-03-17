@@ -63,7 +63,7 @@
 - Then you can run it as:
 
   ```shell
-  sudo su geoclue
+  sudo su geoclue # Starts a new shell as `geoclue` user
   G_MESSAGES_DEBUG=Geoclue /usr/libexec/geoclue
   ```
 
