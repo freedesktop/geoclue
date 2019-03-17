@@ -48,7 +48,8 @@
 - [Install meson](https://mesonbuild.com/Getting-meson.html).
 
 - Ensure you have a geoclue user on your system. If it already exists, you may
-  need to modify `/etc/passwd` file to make it a login user account.
+  need to modify `/etc/passwd` file to make it a login user account by replacing
+  `/sbin/nologin` with `/bin/bash` (or the path to your preferred shell).
 
 - Build and install geoclue.
 
