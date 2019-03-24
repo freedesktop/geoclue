@@ -67,6 +67,8 @@ static char *
 get_ssid_from_bss (WPABSS *bss)
 {
         GVariant *variant = wpa_bss_get_ssid (bss);
+        if (variant == NULL)
+                return NULL;
 
         return variant_to_string (variant, NULL);
 }
@@ -80,6 +82,8 @@ get_bssid_from_bss (WPABSS *bss)
         guint raw_len, len, i, j;
 
         variant = wpa_bss_get_bssid (bss);
+        if (variant == NULL)
+                return NULL;
 
         raw_bssid = variant_to_string (variant, &raw_len);
         len = raw_len * 2 + raw_len;
@@ -409,18 +413,21 @@ out:
 gboolean
 gclue_mozilla_should_ignore_bss (WPABSS *bss)
 {
-        char *ssid, *bssid;
+        g_autofree char *ssid = NULL, *bssid = NULL;
+
+        bssid = get_bssid_from_bss (bss);
+        if (bssid == NULL) {
+                g_debug ("Ignoring WiFi AP with unknown BSSID..");
+                return TRUE;
+        }
 
         ssid = get_ssid_from_bss (bss);
-        bssid = get_bssid_from_bss (bss);
         if (ssid == NULL || g_str_has_suffix (ssid, "_nomap")) {
                 g_debug ("SSID for WiFi AP '%s' missing or has '_nomap' suffix."
                          ", Ignoring..",
                          bssid);
                 return TRUE;
         }
-        g_free (ssid);
-        g_free (bssid);
 
         return FALSE;
 }
