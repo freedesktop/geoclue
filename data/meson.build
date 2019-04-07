@@ -16,12 +16,19 @@ if get_option('enable-backend')
     conf = configuration_data()
     conf.set('libexecdir', libexecdir)
     conf.set('dbus_srv_user', get_option('dbus-srv-user'))
+    conf.set('sysconfdir', sysconfdir)
 
     service_dir = join_paths(datadir, 'dbus-1', 'system-services')
     configure_file(output: 'org.freedesktop.GeoClue2.service',
                    input: 'org.freedesktop.GeoClue2.service.in',
                    configuration: conf,
                    install_dir: service_dir)
+
+    man_file = configure_file(output: 'geoclue.5',
+                              input: 'geoclue.5.in',
+                              configuration: conf)
+
+    install_man(man_file)
 
     # DBus Service policy file
     dbus_service_dir = get_option('dbus-sys-dir')
