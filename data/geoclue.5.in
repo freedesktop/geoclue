@@ -82,9 +82,7 @@ URL to submission API of Mozilla Location Service
 .IP
 .B submission-nick=geoclue
 .br
-A nickname to submit network data with. This is currently used for leaderboard:
-https://location.services.mozilla.com/leaders
-A nickname must be 2-32 characters long.
+A nickname to submit network data with. A nickname must be 2-32 characters long.
 .br
 .SH APPLICATION CONFIGURATION OPTIONS
 Having an entry here for an application with 
