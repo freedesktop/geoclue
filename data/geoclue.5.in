@@ -87,10 +87,9 @@ A nickname to submit network data with. A nickname must be 2-32 characters long.
 .SH APPLICATION CONFIGURATION OPTIONS
 Having an entry here for an application with 
 .B allowed=true
-means that geoclue will not ask agent to authorize the application.
-This is to ensure that system components and applications with
-built-in authorization mechanism (e.g web browsers) do not have to
-be bound to agents.
+means that geoclue will not ask agent to authorize the application. This is to
+ensure that applications with built-in authorization mechanism (e.g web
+browsers) do not have to be bound to agents.
 .PP
 If your application is denied access to location information and your
 operating system doesn't provide any mechanism to change that, it is

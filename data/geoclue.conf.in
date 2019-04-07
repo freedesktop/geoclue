@@ -73,9 +73,8 @@ submission-nick=geoclue
 #
 # NOTE: Having an entry here for an application with allowed=true means that
 #       geoclue will not ask agent to authorize the application. This is to
-#       ensure that system components and applications with built-in
-#       authorization mechanism (e.g web browsers) do not have to be bound to
-#       agents.
+#       ensure that applications with built-in authorization mechanism (e.g web
+#       browsers) do not have to be bound to agents.
 #
 #       If your application is denied access to location information and your
 #       operating system doesn't provide any mechanism to change that, it is
