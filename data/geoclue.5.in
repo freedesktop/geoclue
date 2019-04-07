@@ -69,16 +69,6 @@ Enable WiFi source
 .br
 URL to the wifi geolocation service. The key can currenty be anything, just
 needs to be present but that is likely going to change in future.
-.br
-To use the Google geolocation service instead of mozilla's, simply uncomment
-this url while changing API_KEY to your Google API key and comment out or
-remove the url above.
-.IP
-.B WARNING: 
-Please make sure that you are complying with the Google's ToS and
-policies if you uncomment this:
-https://developers.google.com/maps/documentation/geolocation/policies
-url=https://www.googleapis.com/geolocation/v1/geolocate?key=YOUR_KEY
 .IP
 .B submit-data=false
 Submit data to Mozilla Location Service
