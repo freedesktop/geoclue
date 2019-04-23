@@ -41,7 +41,7 @@ introduce the re-write was version 1.99.
 # Communication and Contribution
 
 - Discussions take place on the 
-[mailing list](http://lists.freedesktop.org/mailman/listinfo/geoclue).
+[GNOME Discourse](https://discourse.gnome.org/c/platform).
 - The IRC chat for geoclue is on __#gnome-maps__ at irc.gimp.org .
 - Issues are tracked on 
 [Gitlab](https://gitlab.freedesktop.org/geoclue/geoclue/issues).
