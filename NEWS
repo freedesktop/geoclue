@@ -1,3 +1,24 @@
+2.5.3
+=====
+
+- Fix a crash.
+- Support for GGA messages from more NMEA sources.
+- New API to allow automatic server side deletion of client.
+- Automatically delete client on server when using GClueSimple.
+- Avoid linking to system-installed library.
+- Fix library-only build.
+- Add manpage for geoclue.conf file.
+- Document usage and building of the project.
+- Other fixes and improvements.
+
+Contributors:
+
+Benjamin Berg <bberg@redhat.com>
+Inzamam <inzamam.15@cse.mrt.ac.lk>
+Sachin Chand <schand1997@gmail.com>
+Sumera Priyadarsini <sylphrenadin@gmail.com>
+Zeeshan Ali <zeeshanak@gnome.org>
+
 2.5.2
 =====
 
