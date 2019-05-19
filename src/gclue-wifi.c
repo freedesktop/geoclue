@@ -838,10 +838,13 @@ gclue_wifi_create_query (GClueWebSource *source,
                          GError        **error)
 {
         GList *bss_list; /* As in Access Points */
+        SoupMessage *msg;
 
         bss_list = get_bss_list (GCLUE_WIFI (source), NULL);
 
-        return gclue_mozilla_create_query (bss_list, NULL, error);
+        msg = gclue_mozilla_create_query (bss_list, NULL, error);
+        g_list_free (bss_list);
+        return msg;
 }
 
 static GClueLocation *
@@ -858,13 +861,16 @@ gclue_wifi_create_submit_query (GClueWebSource  *source,
                                 GError         **error)
 {
         GList *bss_list; /* As in Access Points */
+        SoupMessage * msg;
 
         bss_list = get_bss_list (GCLUE_WIFI (source), error);
         if (bss_list == NULL)
                 return NULL;
 
-        return gclue_mozilla_create_submit_query (location,
-                                                  bss_list,
-                                                  NULL,
-                                                  error);
+        msg = gclue_mozilla_create_submit_query (location,
+                                                 bss_list,
+                                                 NULL,
+                                                 error);
+        g_list_free (bss_list);
+        return msg;
 }
