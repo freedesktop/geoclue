@@ -181,6 +181,8 @@ gclue_min_uint_get_value (GClueMinUINT *muint)
                 }
         }
 
+        g_list_free (values);
+
         return value;
 }
 
