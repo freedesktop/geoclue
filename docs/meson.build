@@ -1,7 +1,3 @@
-if get_option('libgeoclue')
-    subdir('lib')
-endif
-
 if get_option('enable-backend')
   conf = configuration_data()
   conf.set_quoted('VERSION', gclue_version)
@@ -25,4 +21,8 @@ if get_option('enable-backend')
                mkdb_args: mkdb_options,
                dependencies: libgeoclue_dep,
                install: true)
+endif
+
+if get_option('libgeoclue')
+    subdir('lib')
 endif
