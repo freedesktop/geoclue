@@ -258,6 +258,7 @@ on_client_info_new_ready (GObject      *source_object,
         GError *error = NULL;
         guint32 user_id;
         gint64 now;
+        gboolean system_app;
 
         info = gclue_client_info_new_finish (res, &error);
         if (info == NULL) {
@@ -277,7 +278,10 @@ on_client_info_new_ready (GObject      *source_object,
         agent_proxy = g_hash_table_lookup (priv->agents,
                                            GINT_TO_POINTER (user_id));
         now = g_get_monotonic_time ();
+
+        system_app = (gclue_client_info_get_xdg_id (info) == NULL);
         if (agent_proxy == NULL &&
+            !system_app &&
             now < (priv->init_time + AGENT_WAIT_TIMEOUT_USEC)) {
                 /* Its possible that geoclue was just launched on GetClient
                  * call, in which case agents need some time to register
