@@ -227,7 +227,7 @@ static char *
 get_bssid_from_bss (WPABSS *bss)
 {
         GVariant *variant;
-        char *raw_bssid;
+        g_autofree char *raw_bssid = NULL;
         char *bssid;
         guint raw_len, len, i, j;
 
