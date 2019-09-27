@@ -1,3 +1,9 @@
+2.5.4
+=====
+
+- Plug a leak that becomes pretty huge after a while of running Geoclue.
+- Fix a buffer-overflow.
+
 2.5.3
 =====
 
