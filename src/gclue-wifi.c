@@ -232,15 +232,20 @@ get_bssid_from_bss (WPABSS *bss)
         guint raw_len, len, i, j;
 
         variant = wpa_bss_get_bssid (bss);
+        if (variant == NULL)
+                return NULL;
 
         raw_bssid = variant_to_string (variant, &raw_len);
-        len = raw_len * 2 + raw_len;
+        if (raw_bssid == NULL)
+                return NULL;
+
+        len = raw_len * 2;
         bssid = g_malloc (len);
-        for (i = 0, j = 0; i < len; i = i + 3, j++)
-                g_snprintf (bssid + i,
-                            4,
-                           "%02x:",
-                           (unsigned char) raw_bssid[j]);
+        for (i = 0, j = 0; i < len - 3; i = i + 2, j++) {
+                unsigned char c = (unsigned char) raw_bssid[j];
+
+                g_snprintf (bssid + i, 3, "%02x:", c);
+        }
         bssid[len - 1] = '\0';
 
         return bssid;
