@@ -40,65 +40,64 @@
  * its easy to switch to Google's API.
  **/
 
-static char *
-variant_to_string (GVariant *variant, guint *len)
+#define BSSID_LEN 7
+#define BSSID_STR_LEN 18
+#define MAX_SSID_LEN 32
+
+static guint
+variant_to_string (GVariant *variant, guint max_len, char *ret)
 {
-        guint n_bytes, i;
-        char *ret;
+        guint i;
+        guint len;
 
-        n_bytes = g_variant_n_children (variant);
-        if (len != NULL)
-                *len = n_bytes;
-        if (n_bytes <= 0)
-                return NULL;
-        ret = g_malloc (n_bytes + 1);
-        ret[n_bytes] = '\0';
+        len = g_variant_n_children (variant);
+        if (len == 0)
+                return 0;
+        g_return_val_if_fail(len < max_len, 0);
+        ret[len] = '\0';
 
-        for (i = 0; i < n_bytes; i++)
+        for (i = 0; i < len; i++)
                 g_variant_get_child (variant,
                                      i,
                                      "y",
                                      &ret[i]);
 
-        return ret;
+        return len;
 }
 
-static char *
-get_ssid_from_bss (WPABSS *bss)
+static guint
+get_ssid_from_bss (WPABSS *bss, char *ssid)
 {
         GVariant *variant = wpa_bss_get_ssid (bss);
-        if (variant == NULL)
-                return NULL;
 
-        return variant_to_string (variant, NULL);
+        return variant_to_string (variant, MAX_SSID_LEN, ssid);
 }
 
-static char *
-get_bssid_from_bss (WPABSS *bss)
+static gboolean
+get_bssid_from_bss (WPABSS *bss, char *bssid)
 {
         GVariant *variant;
-        g_autofree char *raw_bssid = NULL;
-        char *bssid;
-        guint raw_len, len, i, j;
+        char raw_bssid[BSSID_LEN] = { 0 };
+        guint raw_len, i;
 
         variant = wpa_bss_get_bssid (bss);
         if (variant == NULL)
-                return NULL;
+                return FALSE;
 
-        raw_bssid = variant_to_string (variant, &raw_len);
-        if (raw_bssid == NULL)
-                return NULL;
+        raw_len = variant_to_string (variant, BSSID_LEN, raw_bssid);
+        g_return_val_if_fail (raw_len == BSSID_LEN - 1, FALSE);
 
-        len = raw_len * 2;
-        bssid = g_malloc (len);
-        for (i = 0, j = 0; i < len - 3; i = i + 2, j++) {
-                unsigned char c = (unsigned char) raw_bssid[j];
+        for (i = 0; i < BSSID_LEN - 1; i++) {
+                unsigned char c = (unsigned char) raw_bssid[i];
 
-                g_snprintf (bssid + i, 3, "%02x:", c);
+                if (i == BSSID_LEN - 2) {
+                        g_snprintf (bssid + (i * 3), 3, "%02x", c);
+                } else {
+                        g_snprintf (bssid + (i * 3), 4, "%02x:", c);
+                }
         }
-        bssid[len - 1] = '\0';
 
-        return bssid;
+        return TRUE;
 }
 
 static const char *
@@ -162,7 +161,7 @@ gclue_mozilla_create_query (GList        *bss_list, /* As in Access Points */
 
                 for (iter = bss_list; iter != NULL; iter = iter->next) {
                         WPABSS *bss = WPA_BSS (iter->data);
-                        char *mac;
+                        char mac[BSSID_STR_LEN] = { 0 };
                         gint16 strength_dbm;
 
                         if (gclue_mozilla_should_ignore_bss (bss))
@@ -170,9 +169,8 @@ gclue_mozilla_create_query (GList        *bss_list, /* As in Access Points */
 
                         json_builder_begin_object (builder);
                         json_builder_set_member_name (builder, "macAddress");
-                        mac = get_bssid_from_bss (bss);
+                        get_bssid_from_bss (bss, mac);
                         json_builder_add_string_value (builder, mac);
-                        g_free (mac);
 
                         json_builder_set_member_name (builder, "signalStrength");
                         strength_dbm = wpa_bss_get_signal (bss);
@@ -336,7 +334,7 @@ gclue_mozilla_create_submit_query (GClueLocation   *location,
 
                 for (iter = bss_list; iter != NULL; iter = iter->next) {
                         WPABSS *bss = WPA_BSS (iter->data);
-                        char *mac;
+                        char mac[BSSID_STR_LEN] = { 0 };
                         gint16 strength_dbm;
                         guint16 frequency;
 
@@ -345,9 +343,8 @@ gclue_mozilla_create_submit_query (GClueLocation   *location,
 
                         json_builder_begin_object (builder);
                         json_builder_set_member_name (builder, "key");
-                        mac = get_bssid_from_bss (bss);
+                        get_bssid_from_bss (bss, mac);
                         json_builder_add_string_value (builder, mac);
-                        g_free (mac);
 
                         json_builder_set_member_name (builder, "signal");
                         strength_dbm = wpa_bss_get_signal (bss);
@@ -416,16 +413,17 @@ out:
 gboolean
 gclue_mozilla_should_ignore_bss (WPABSS *bss)
 {
-        g_autofree char *ssid = NULL, *bssid = NULL;
+        char ssid[MAX_SSID_LEN] = { 0 };
+        char bssid[BSSID_STR_LEN] = { 0 };
+        guint len;
 
-        bssid = get_bssid_from_bss (bss);
-        if (bssid == NULL) {
+        if (!get_bssid_from_bss (bss, bssid)) {
                 g_debug ("Ignoring WiFi AP with unknown BSSID..");
                 return TRUE;
         }
 
-        ssid = get_ssid_from_bss (bss);
-        if (ssid == NULL || g_str_has_suffix (ssid, "_nomap")) {
+        len = get_ssid_from_bss (bss, ssid);
+        if (len == 0 || g_str_has_suffix (ssid, "_nomap")) {
                 g_debug ("SSID for WiFi AP '%s' missing or has '_nomap' suffix."
                          ", Ignoring..",
                          bssid);
