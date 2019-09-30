@@ -1,3 +1,12 @@
+2.5.5
+=====
+
+- Plug another leak.
+- Fix another buffer overflow.
+- Fix WiFi-geolocation that got broken in 2.5.4.
+- Put freequently used small strings on the stack to avoid excessive memory
+  usage.
+
 2.5.4
 =====
 
