@@ -232,7 +232,8 @@ load_wifi_config (GClueConfig *config)
                                                 "url",
                                                 &error);
         if (error != NULL) {
-                g_warning ("%s", error->message);
+                g_debug ("Failed to get config \"wifi/url\": %s",
+                         error->message);
                 g_clear_error (&error);
                 priv->wifi_url = g_strdup (DEFAULT_WIFI_URL);
         }
@@ -242,7 +243,7 @@ load_wifi_config (GClueConfig *config)
                                                     "submit-data",
                                                     &error);
         if (error != NULL) {
-                g_debug ("Failed to get config wifi/submit-data: %s",
+                g_debug ("Failed to get config \"wifi/submit-data\": %s",
                          error->message);
                 g_error_free (error);
 
@@ -254,7 +255,8 @@ load_wifi_config (GClueConfig *config)
                                                        "submission-url",
                                                        &error);
         if (error != NULL) {
-                g_debug ("No wifi submission URL: %s", error->message);
+                g_debug ("Failed to get config \"wifi/submission-url\": %s",
+                         error->message);
                 g_error_free (error);
                 priv->wifi_submit_url = g_strdup (DEFAULT_WIFI_SUBMIT_URL);
         }
@@ -264,7 +266,8 @@ load_wifi_config (GClueConfig *config)
                                                         "submission-nick",
                                                         &error);
         if (error != NULL) {
-                g_debug ("No wifi submission nick: %s", error->message);
+                g_debug ("Failed to get config \"wifi/submission-nick\": %s",
+                         error->message);
                 g_error_free (error);
         }
 }
