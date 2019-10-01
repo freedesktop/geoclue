@@ -34,3 +34,6 @@ option('systemd-system-unit-dir',
 option('dbus-srv-user',
        type: 'string', value: 'root',
        description: 'The user (existing) as which the service will run')
+option('mozilla-api-key',
+       type: 'string', value: 'geoclue',
+       description: 'Your API key for Mozilla Location Service')

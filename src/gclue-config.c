@@ -216,8 +216,8 @@ load_enable_source_config (GClueConfig *config,
         return enable;
 }
 
-#define DEFAULT_WIFI_URL "https://location.services.mozilla.com/v1/geolocate?key=geoclue"
-#define DEFAULT_WIFI_SUBMIT_URL "https://location.services.mozilla.com/v1/submit?key=geoclue"
+#define DEFAULT_WIFI_URL "https://location.services.mozilla.com/v1/geolocate?key=" MOZILLA_API_KEY
+#define DEFAULT_WIFI_SUBMIT_URL "https://location.services.mozilla.com/v1/submit?key=" MOZILLA_API_KEY
 
 static void
 load_wifi_config (GClueConfig *config)

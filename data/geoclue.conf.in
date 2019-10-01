@@ -42,13 +42,13 @@ enable=true
 # Enable WiFi source
 enable=true
 
-# URL to the wifi geolocation service. The key can currenty be anything, just
-# needs to be present but that is likely going to change in future.
-url=https://location.services.mozilla.com/v1/geolocate?key=geoclue
+# URL to the WiFi geolocation service. If not set, defaults to Mozilla's
+# Location Service with a hardcoded key. To use a custom key, uncomment this URL
+# while changing YOUR_KEY to your MLS API key.
+#url=https://location.services.mozilla.com/v1/geolocate?key=YOUR_KEY
 
-# To use the Google geolocation service instead of mozilla's, simply uncomment
-# this url while changing API_KEY to your Google API key and comment out or
-# remove the url above.
+# To use the Google geolocation service instead of Mozilla's, uncomment this URL
+# while changing YOUR_KEY to your Google API key.
 #
 # WARNING: Please make sure that you are complying with the Google's ToS and
 #          policies if you uncomment this:
@@ -63,8 +63,10 @@ url=https://location.services.mozilla.com/v1/geolocate?key=geoclue
 #
 submit-data=false
 
-# URL to submission API of Mozilla Location Service
-submission-url=https://location.services.mozilla.com/v1/submit?key=geoclue
+# URL to submission API of Mozilla Location Service. If not set, defaults to
+# Mozilla's API with a hardcoded key. To use a custom key, uncomment this URL
+# while changing YOUR_KEY to your MLS API key.
+#submission-url=https://location.services.mozilla.com/v1/submit?key=YOUR_KEY
 
 # A nickname to submit network data with. A nickname must be 2-32 characters long.
 submission-nick=geoclue
