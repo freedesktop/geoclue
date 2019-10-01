@@ -257,7 +257,7 @@ load_wifi_config (GClueConfig *config)
         if (error != NULL) {
                 g_debug ("Failed to get config \"wifi/submission-url\": %s",
                          error->message);
-                g_error_free (error);
+                g_clear_error (&error);
                 priv->wifi_submit_url = g_strdup (DEFAULT_WIFI_SUBMIT_URL);
         }
 
