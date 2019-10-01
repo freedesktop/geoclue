@@ -1,3 +1,16 @@
+2.5.6
+=====
+
+- Fix crashes in WiFi handling code.
+- Plug a leak.
+
+Contributors:
+
+Amaury Pouly <amaury.pouly@gmail.com>
+Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+Will Thompson <will@willthompson.co.uk>
+Zeeshan Ali <zeeshanak@gnome.org>
+
 2.5.5
 =====
 
