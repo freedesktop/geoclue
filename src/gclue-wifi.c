@@ -550,14 +550,18 @@ disconnect_bss_signals (GClueWifi *wifi)
 {
         GClueWifiPrivate *priv = wifi->priv;
 
-        if (priv->bss_added_id == 0 || priv->interface == NULL)
-                return;
-
         cancel_wifi_scan (wifi);
-        g_signal_handler_disconnect (priv->interface, priv->bss_added_id);
-        priv->bss_added_id = 0;
-        g_signal_handler_disconnect (priv->interface, priv->bss_removed_id);
-        priv->bss_removed_id = 0;
+
+        if (priv->bss_added_id != 0) {
+                g_signal_handler_disconnect (priv->interface,
+                                             priv->bss_added_id);
+                priv->bss_added_id = 0;
+        }
+        if (priv->bss_removed_id != 0) {
+                g_signal_handler_disconnect (priv->interface,
+                                             priv->bss_removed_id);
+                priv->bss_removed_id = 0;
+        }
 
         g_hash_table_remove_all (priv->bss_proxies);
         g_hash_table_remove_all (priv->ignored_bss_proxies);
