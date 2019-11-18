@@ -524,6 +524,29 @@ on_session_created (GObject *source,
                                  NULL, NULL, NULL);
 }
 
+static int
+accuracy_level_to_portal (GClueAccuracyLevel level)
+{
+        switch (level) {
+        case GCLUE_ACCURACY_LEVEL_NONE:
+                return 0;
+        case GCLUE_ACCURACY_LEVEL_COUNTRY:
+                return 1;
+        case GCLUE_ACCURACY_LEVEL_CITY:
+                return 2;
+        case GCLUE_ACCURACY_LEVEL_NEIGHBORHOOD:
+                return 3;
+        case GCLUE_ACCURACY_LEVEL_STREET:
+                return 4;
+        case GCLUE_ACCURACY_LEVEL_EXACT:
+                return 5;
+        default:
+                g_assert_not_reached ();
+        }
+
+        return 0;
+}
+
 static void
 on_portal_created (GObject      *source_object,
                    GAsyncResult *res,
@@ -567,7 +590,7 @@ on_portal_created (GObject      *source_object,
                                "session_handle_token", g_variant_new_string (session_token));
         g_variant_builder_add (&options, "{sv}", "distance-threshold", g_variant_new_uint32 (0));
         g_variant_builder_add (&options, "{sv}", "time-threshold", g_variant_new_uint32 (0));
-        g_variant_builder_add (&options, "{sv}", "accuracy", g_variant_new_uint32 (0));
+        g_variant_builder_add (&options, "{sv}", "accuracy", g_variant_new_uint32 (accuracy_level_to_portal (simple->priv->accuracy_level)));
 
         xdp_location_call_create_session (priv->portal,
                                           g_variant_builder_end (&options),
