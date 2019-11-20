@@ -778,6 +778,7 @@ gclue_simple_new_sync (const char        *desktop_id,
 
         return simple;
 }
+
 /**
  * gclue_simple_get_client:
  * @simple: A #GClueSimple object.
