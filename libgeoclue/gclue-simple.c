@@ -205,7 +205,8 @@ gclue_simple_class_init (GClueSimpleClass *klass)
         /**
          * GClueSimple:client:
          *
-         * The client proxy.
+         * The client proxy. This is %NULL if @simple is not using a client proxy
+         * (i-e when inside the Flatpak sandbox).
          */
         gParamSpecs[PROP_CLIENT] = g_param_spec_object ("client",
                                                         "Client",
