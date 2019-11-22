@@ -37,8 +37,7 @@ libgeoclue_sources += gclue_client[0]
 libgeoclue_sources += gclue_location[0]
 libgeoclue_sources += gclue_manager[0]
 libgeoclue_sources += libgeoclue_public_api_gen_sources[1]
-libgeoclue_sources += location_portal[0]
-libgeoclue_sources += location_portal[1]
+libgeoclue_priv_sources = location_portal
 
 libgeoclue_headers = files('geoclue.h', 'gclue-helpers.h', 'gclue-simple.h')
 
@@ -52,7 +51,7 @@ c_args = [ '-DG_LOG_DOMAIN="Geoclue"' ]
 include_dirs = [ libgeoclue_public_api_inc, include_directories('.', '..') ]
 link_whole = [ libgeoclue_public_api ]
 libgeoclue = library('geoclue-2',
-                     libgeoclue_sources,
+                     [ libgeoclue_sources, libgeoclue_priv_sources ],
                      libgeoclue_headers,
                      include_directories: include_dirs,
                      dependencies: base_deps,
@@ -64,7 +63,9 @@ libgeoclue = library('geoclue-2',
 libgeoclue_dep = declare_dependency(link_with: libgeoclue,
                                     include_directories: include_dirs,
                                     dependencies: base_deps,
-                                    sources: [ libgeoclue_sources, libgeoclue_headers ])
+                                    sources: [ libgeoclue_sources,
+                                               libgeoclue_priv_sources,
+                                               libgeoclue_headers ])
 
 gir = find_program('g-ir-scanner', required: false)
 vapigen = find_program('vapigen', required: false)
