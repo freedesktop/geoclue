@@ -783,7 +783,8 @@ gclue_simple_new_sync (const char        *desktop_id,
  * gclue_simple_get_client:
  * @simple: A #GClueSimple object.
  *
- * Gets the client proxy, or %NULL if @simple is not using a client proxy.
+ * Gets the client proxy, or %NULL if @simple is not using a client proxy (i-e
+ * when inside the Flatpak sandbox).
  *
  * Returns: (transfer none) (type GClueClientProxy): The client object.
  */
