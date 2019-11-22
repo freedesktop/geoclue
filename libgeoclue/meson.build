@@ -27,7 +27,7 @@ gclue_manager = gnome.gdbus_codegen(
 
 # Location portal interface
 location_portal = gnome.gdbus_codegen('xdp-location',
-				'org.freedesktop.portal.Location.xml',
+				'../interface/org.freedesktop.portal.Location.xml',
 				interface_prefix: 'org.freedesktop.portal.',
 				namespace: 'Xdp',
 				install_header: false)
