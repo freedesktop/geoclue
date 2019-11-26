@@ -290,7 +290,7 @@ start_source (GClueLocationSource *source)
         if (source->priv->active_counter > 1) {
                 g_debug ("%s already active, not starting.",
                          G_OBJECT_TYPE_NAME (source));
-                return FALSE;
+                return TRUE;
         }
 
         if (source->priv->compute_movement) {
@@ -313,7 +313,7 @@ stop_source (GClueLocationSource *source)
         if (source->priv->active_counter == 0) {
                 g_debug ("%s already inactive, not stopping.",
                          G_OBJECT_TYPE_NAME (source));
-                return FALSE;
+                return TRUE;
         }
 
         source->priv->active_counter--;
