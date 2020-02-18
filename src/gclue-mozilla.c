@@ -69,6 +69,8 @@ static guint
 get_ssid_from_bss (WPABSS *bss, char *ssid)
 {
         GVariant *variant = wpa_bss_get_ssid (bss);
+        if (variant == NULL)
+                return 0;
 
         return variant_to_string (variant, MAX_SSID_LEN, ssid);
 }
