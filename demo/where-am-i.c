@@ -156,9 +156,6 @@ on_simple_ready (GObject      *source_object,
                 g_object_ref (client);
                 g_print ("Client object: %s\n",
                          g_dbus_proxy_get_object_path (G_DBUS_PROXY (client)));
-                if (time_threshold > 0) {
-                        gclue_client_set_time_threshold (client, time_threshold);
-                }
 
                 g_signal_connect (client,
                                   "notify::active",
@@ -194,11 +191,13 @@ main (gint argc, gchar *argv[])
 
         g_timeout_add_seconds (timeout, on_location_timeout, NULL);
 
-        gclue_simple_new ("geoclue-where-am-i",
-                          accuracy_level,
-                          NULL,
-                          on_simple_ready,
-                          NULL);
+        gclue_simple_new_with_thresholds ("geoclue-where-am-i",
+                                          accuracy_level,
+                                          time_threshold,
+                                          0,
+                                          NULL,
+                                          on_simple_ready,
+                                          NULL);
 
         main_loop = g_main_loop_new (NULL, FALSE);
         g_main_loop_run (main_loop);
