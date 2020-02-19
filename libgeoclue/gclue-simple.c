@@ -618,8 +618,7 @@ gclue_simple_init_async (GAsyncInitable     *initable,
                                                 cancellable,
                                                 on_portal_created,
                                                 task);
-        }
-        else {
+        } else {
                 gclue_client_proxy_create_full (simple->priv->desktop_id,
                                                 simple->priv->accuracy_level,
                                                 GCLUE_CLIENT_PROXY_CREATE_AUTO_DELETE,
