@@ -69,6 +69,21 @@ GClueSimple *   gclue_simple_new_sync     (const char        *desktop_id,
                                            GClueAccuracyLevel accuracy_level,
                                            GCancellable      *cancellable,
                                            GError           **error);
+void            gclue_simple_new_with_thresholds
+                                          (const char         *desktop_id,
+                                           GClueAccuracyLevel  accuracy_level,
+                                           guint               time_threshold,
+                                           guint               distance_threshold,
+                                           GCancellable       *cancellable,
+                                           GAsyncReadyCallback callback,
+                                           gpointer            user_data);
+GClueSimple *   gclue_simple_new_with_thresholds_sync
+                                          (const char        *desktop_id,
+                                           GClueAccuracyLevel accuracy_level,
+                                           guint              time_threshold,
+                                           guint              distance_threshold,
+                                           GCancellable      *cancellable,
+                                           GError           **error);
 GClueClient *   gclue_simple_get_client   (GClueSimple        *simple);
 GClueLocation * gclue_simple_get_location (GClueSimple        *simple);
 

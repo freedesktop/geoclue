@@ -57,6 +57,8 @@ struct _GClueSimplePrivate
 {
         char *desktop_id;
         GClueAccuracyLevel accuracy_level;
+        guint distance_threshold;
+        guint time_threshold;
 
         GClueClient *client;
         GClueLocation *location;
@@ -87,6 +89,8 @@ enum
         PROP_ACCURACY_LEVEL,
         PROP_CLIENT,
         PROP_LOCATION,
+        PROP_DISTANCE_THRESHOLD,
+        PROP_TIME_THRESHOLD,
         LAST_PROP
 };
 
@@ -134,6 +138,14 @@ gclue_simple_get_property (GObject    *object,
                 g_value_set_object (value, simple->priv->location);
                 break;
 
+        case PROP_DISTANCE_THRESHOLD:
+                g_value_set_uint (value, simple->priv->distance_threshold);
+                break;
+
+        case PROP_TIME_THRESHOLD:
+                g_value_set_uint (value, simple->priv->time_threshold);
+                break;
+
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         }
@@ -154,6 +166,14 @@ gclue_simple_set_property (GObject      *object,
 
         case PROP_ACCURACY_LEVEL:
                 simple->priv->accuracy_level = g_value_get_enum (value);
+                break;
+
+        case PROP_DISTANCE_THRESHOLD:
+                simple->priv->distance_threshold = g_value_get_uint (value);
+                break;
+
+        case PROP_TIME_THRESHOLD:
+                simple->priv->time_threshold = g_value_get_uint (value);
                 break;
 
         default:
@@ -230,6 +250,44 @@ gclue_simple_class_init (GClueSimpleClass *klass)
         g_object_class_install_property (object_class,
                                          PROP_LOCATION,
                                          gParamSpecs[PROP_LOCATION]);
+
+        /**
+         * GClueSimple:distance-threshold:
+         *
+         * The current distance threshold in meters. This value is used by the
+         * service when it gets new location info. If the distance moved is
+         * below the threshold, it won't emit the LocationUpdated signal.
+         *
+         * When set to 0 (default), it always emits the signal.
+         */
+        gParamSpecs[PROP_DISTANCE_THRESHOLD] = g_param_spec_uint
+                ("distance-threshold",
+                 "DistanceThreshold",
+                 "DistanceThreshold",
+                 0, G_MAXUINT32, 0,
+                 G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_CONSTRUCT_ONLY);
+        g_object_class_install_property (object_class,
+                                         PROP_DISTANCE_THRESHOLD,
+                                         gParamSpecs[PROP_DISTANCE_THRESHOLD]);
+
+        /**
+         * GClueSimple:time-threshold:
+         *
+         * The current time threshold in seconds. This value is used by the
+         * service when it gets new location info. If the time passed is
+         * below the threshold, it won't emit the LocationUpdated signal.
+         *
+         * When set to 0 (default), it always emits the signal.
+         */
+        gParamSpecs[PROP_TIME_THRESHOLD] = g_param_spec_uint
+                ("time-threshold",
+                 "TimeThreshold",
+                 "TimeThreshold",
+                 0, G_MAXUINT32, 0,
+                 G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_CONSTRUCT_ONLY);
+        g_object_class_install_property (object_class,
+                                         PROP_TIME_THRESHOLD,
+                                         gParamSpecs[PROP_TIME_THRESHOLD]);
 }
 
 static void
@@ -326,6 +384,14 @@ on_client_created (GObject      *source_object,
                 g_clear_object (&priv->task);
 
                 return;
+        }
+        if (priv->distance_threshold != 0) {
+                gclue_client_set_distance_threshold
+                        (priv->client, priv->distance_threshold);
+        }
+        if (priv->time_threshold != 0) {
+                gclue_client_set_time_threshold
+                        (priv->client, priv->time_threshold);
         }
 
         priv->task = task;
@@ -778,6 +844,93 @@ gclue_simple_new_sync (const char        *desktop_id,
 
         return simple;
 }
+
+/**
+ * gclue_simple_new_with_thresholds:
+ * @desktop_id: The desktop file id (the basename of the desktop file).
+ * @accuracy_level: The requested accuracy level as #GClueAccuracyLevel.
+ * @time_threshold: Time threshold in seconds, 0 for no limit.
+ * @distance_threshold: Distance threshold in meters, 0 for no limit.
+ * @cancellable: (allow-none): A #GCancellable or %NULL.
+ * @callback: A #GAsyncReadyCallback to call when the results are ready.
+ * @user_data: User data to pass to @callback.
+ *
+ * Asynchronously creates a #GClueSimple instance. Use
+ * #gclue_simple_new_finish() to get the created #GClueSimple instance.
+ *
+ * See #gclue_simple_new_with_thresholds_sync() for the synchronous,
+ * blocking version of this function.
+ */
+void
+gclue_simple_new_with_thresholds (const char         *desktop_id,
+                                  GClueAccuracyLevel  accuracy_level,
+                                  guint               time_threshold,
+                                  guint               distance_threshold,
+                                  GCancellable       *cancellable,
+                                  GAsyncReadyCallback callback,
+                                  gpointer            user_data)
+{
+        g_async_initable_new_async (GCLUE_TYPE_SIMPLE,
+                                    G_PRIORITY_DEFAULT,
+                                    cancellable,
+                                    callback,
+                                    user_data,
+                                    "desktop-id", desktop_id,
+                                    "accuracy-level", accuracy_level,
+                                    "time-threshold", time_threshold,
+                                    "distance-threshold", distance_threshold,
+                                    NULL);
+}
+
+/**
+ * gclue_simple_new_with_thresholds_sync:
+ * @desktop_id: The desktop file id (the basename of the desktop file).
+ * @accuracy_level: The requested accuracy level as #GClueAccuracyLevel.
+ * @time_threshold: Time threshold in seconds, 0 for no limit.
+ * @distance_threshold: Distance threshold in meters, 0 for no limit.
+ * @cancellable: (allow-none): A #GCancellable or %NULL.
+ * @error: Return location for error or %NULL.
+ *
+ * The synchronous and blocking version of #gclue_simple_new_with_thresholds().
+ *
+ * Returns: (transfer full) (type GClueSimple): The new #GClueSimple object or
+ * %NULL if @error is set.
+ */
+GClueSimple *
+gclue_simple_new_with_thresholds_sync (const char        *desktop_id,
+                                       GClueAccuracyLevel accuracy_level,
+                                       guint              time_threshold,
+                                       guint              distance_threshold,
+                                       GCancellable      *cancellable,
+                                       GError           **error)
+{
+        GClueSimple *simple;
+        GMainLoop *main_loop;
+        GTask *task;
+
+        task = g_task_new (NULL, cancellable, NULL, NULL);
+        main_loop = g_main_loop_new (NULL, FALSE);
+        g_task_set_task_data (task,
+                              main_loop,
+                              (GDestroyNotify) g_main_loop_unref);
+
+        gclue_simple_new_with_thresholds (desktop_id,
+                                          accuracy_level,
+                                          time_threshold,
+                                          distance_threshold,
+                                          cancellable,
+                                          on_simple_ready,
+                                          task);
+
+        g_main_loop_run (main_loop);
+
+        simple = g_task_propagate_pointer (task, error);
+
+        g_object_unref (task);
+
+        return simple;
+}
+
 
 /**
  * gclue_simple_get_client:
