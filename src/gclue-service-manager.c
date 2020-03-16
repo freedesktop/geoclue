@@ -141,6 +141,14 @@ delete_client (GClueServiceManager *manager,
 }
 
 static void
+on_client_notify_active (GObject    *gobject,
+                         GParamSpec *pspec,
+                         gpointer    user_data)
+{
+        sync_in_use_property (GCLUE_SERVICE_MANAGER (user_data));
+}
+
+static void
 on_peer_vanished (GClueClientInfo *info,
                   gpointer         user_data)
 {
@@ -215,6 +223,11 @@ complete_get_client (OnClientInfoNewReadyData *data)
                 g_object_notify (G_OBJECT (data->manager), "active");
         }
         g_debug ("Number of connected clients: %u", priv->num_clients);
+
+        g_signal_connect (client,
+                          "notify::active",
+                          G_CALLBACK (on_client_notify_active),
+                          data->manager);
 
         g_signal_connect (info,
                           "peer-vanished",
