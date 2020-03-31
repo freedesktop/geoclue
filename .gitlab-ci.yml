@@ -4,7 +4,7 @@ before_script:
     - apt-get install --yes git gobject-introspection libmm-glib-dev wget
     - apt-get install --yes libnotify-dev xsltproc gtk-doc-tools python3-pip
     - apt-get install --yes ninja-build gettext modemmanager-dev
-    - pip3 install meson
+    - pip3 install meson==0.53.2
 
 # Ubuntu 14.04 is not supported, see README for details
 #
