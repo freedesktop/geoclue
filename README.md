@@ -31,9 +31,7 @@ been dropped in favour of the
 # History
 Geoclue was started during the GNOME Summit 2006 in Boston. At least 
 Keith Preston and Tuomas Kuosmanen can be blamed. There was a total rewrite 
-after version 0.9. 
-
-Use tag "0.9" (as in git checkout 0.9) if you need the old code.
+after version 0.9.
 
 There was yet another rewrite that we call geoclue2. The first version to 
 introduce the re-write was version 1.99.
