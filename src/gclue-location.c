@@ -658,6 +658,57 @@ out:
         return location;
 }
 
+static GClueLocation *
+gclue_location_create_from_rmc (const char     *rmc,
+                                GClueLocation  *prev_location,
+                                GError        **error)
+{
+        GClueLocation *location = NULL;
+        char **parts = g_strsplit (rmc, ",", -1);
+
+        if (g_strv_length (parts) < 13)
+                goto error;
+
+        guint64 timestamp = parse_nmea_timestamp (parts[1]);
+        gdouble lat = parse_coordinate_string (parts[3], parts[4]);
+        gdouble lon = parse_coordinate_string (parts[5], parts[6]);
+
+        if (lat == INVALID_COORDINATE || lon == INVALID_COORDINATE)
+                goto error;
+
+        gdouble speed = g_ascii_strtod (parts[7], NULL) * KNOTS_IN_METERS_PER_SECOND;
+        gdouble heading = g_ascii_strtod (parts[8], NULL);
+
+        location = g_object_new (GCLUE_TYPE_LOCATION,
+                                 "latitude", lat,
+                                 "longitude", lon,
+                                 "timestamp", timestamp,
+                                 "speed", speed,
+                                 "heading", heading,
+                                 NULL);
+
+        if (prev_location != NULL) {
+                g_object_set (location,
+                              "accuracy",
+                              gclue_location_get_accuracy (prev_location),
+                              NULL);
+                g_object_set (location,
+                              "altitude",
+                              gclue_location_get_altitude (prev_location),
+                              NULL);
+        }
+
+        goto out;
+error:
+        g_set_error_literal (error,
+                             G_IO_ERROR,
+                             G_IO_ERROR_INVALID_ARGUMENT,
+                             "Invalid NMEA RMC sentence");
+out:
+        g_strfreev (parts);
+        return location;
+}
+
 /**
  * gclue_location_create_from_nmea:
  * @nmea: NMEA sentence
@@ -672,15 +723,18 @@ out:
  **/
 GClueLocation *
 gclue_location_create_from_nmea (const char     *nmea,
+                                 GClueLocation  *prev_location,
                                  GError        **error)
 {
         if (gclue_nmea_is_gga (nmea))
                 return gclue_location_create_from_gga (nmea, error);
+        if (gclue_nmea_is_rmc (nmea))
+                return gclue_location_create_from_rmc (nmea, prev_location, error);
 
         g_set_error_literal (error,
                              G_IO_ERROR,
                              G_IO_ERROR_INVALID_ARGUMENT,
-                             "Invalid NMEA GGA sentence");
+                             "Sentence not valid NMEA GGA or NMEA RMC");
         return NULL;
 }
 

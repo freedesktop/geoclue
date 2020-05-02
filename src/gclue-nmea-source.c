@@ -499,6 +499,7 @@ on_read_nmea_sentence (GObject      *object,
         GClueNMEASource *source = GCLUE_NMEA_SOURCE (user_data);
         GDataInputStream *data_input_stream = G_DATA_INPUT_STREAM (object);
         GError *error = NULL;
+        GClueLocation *prev_location;
         GClueLocation *location;
         gsize data_size = 0 ;
         char *message;
@@ -531,12 +532,15 @@ on_read_nmea_sentence (GObject      *object,
         }
         g_debug ("Network source sent: \"%s\"", message);
 
-        if (!gclue_nmea_is_gga (message)) {
-                g_debug ("Ignoring NMEA sentence, as it's not GGA: %s", message);
+        if (!gclue_nmea_is_nmea (message)) {
+                g_debug ("Ignoring NMEA sentence, as it's niether GGA or RMC: %s", message);
                 goto READ_NEXT_LINE;
          }
 
-        location = gclue_location_create_from_nmea (message, &error);
+        prev_location = gclue_location_source_get_location (GCLUE_LOCATION_SOURCE (source));
+        location = gclue_location_create_from_nmea (message,
+                                                    prev_location,
+                                                    &error);
 
         if (error != NULL) {
                 g_warning ("Error: %s", error->message);
