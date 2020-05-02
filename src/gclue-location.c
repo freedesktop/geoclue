@@ -24,12 +24,14 @@
  */
 
 #include "gclue-location.h"
+#include "gclue-nmea-source.h"
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
 
 #define TIME_DIFF_THRESHOLD 60000000 /* 60 seconds */
 #define EARTH_RADIUS_KM 6372.795
+#define KNOTS_IN_METERS_PER_SECOND 0.51444
 
 struct _GClueLocationPrivate {
         char   *description;
@@ -654,6 +656,32 @@ gclue_location_create_from_gga (const char *gga, GError **error)
 out:
         g_strfreev (parts);
         return location;
+}
+
+/**
+ * gclue_location_create_from_nmea:
+ * @nmea: NMEA sentence
+ * @prev_location: Previous location provided from the location source
+ * @error: Place-holder for errors.
+ *
+ * Creates a new #GClueLocation object from a NMEA sentence.
+ *
+ * Returns: a new #GClueLocation object if it is either GGA or RMC.
+ * a %NULL on all other cases and errors. Unref using
+ * #g_object_unref() when done with it.
+ **/
+GClueLocation *
+gclue_location_create_from_nmea (const char     *nmea,
+                                 GError        **error)
+{
+        if (gclue_nmea_is_gga (nmea))
+                return gclue_location_create_from_gga (nmea, error);
+
+        g_set_error_literal (error,
+                             G_IO_ERROR,
+                             G_IO_ERROR_INVALID_ARGUMENT,
+                             "Invalid NMEA GGA sentence");
+        return NULL;
 }
 
 /**

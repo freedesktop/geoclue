@@ -140,6 +140,9 @@ GClueLocation *gclue_location_new_full
 GClueLocation *gclue_location_create_from_gga
                                   (const char *gga,
                                    GError    **error);
+GClueLocation *gclue_location_create_from_nmea
+                                  (const char *nmea,
+                                   GError    **error);
 
 GClueLocation *gclue_location_duplicate
                                   (GClueLocation *location);

@@ -442,10 +442,59 @@ browse_callback (AvahiServiceBrowser   *service_browser,
         }
 }
 
+/**
+ * gclue_nmea_is_gga:
+ * @msg: NMEA sentence
+ *
+ * Returns: whether given NMEA sentence is a GGA
+ **/
+gboolean
+gclue_nmea_is_gga (const char *msg)
+{
+        return g_str_has_prefix (msg, "$GA" "GGA") ||  /* Galieo */
+               g_str_has_prefix (msg, "$GB" "GGA") ||  /* BeiDou */
+               g_str_has_prefix (msg, "$BD" "GGA") ||  /* BeiDou */
+               g_str_has_prefix (msg, "$GL" "GGA") ||  /* GLONASS */
+               g_str_has_prefix (msg, "$GN" "GGA") ||  /* GNSS (combined) */
+               g_str_has_prefix (msg, "$GP" "GGA") ||  /* GPS, SBAS, QZSS */
+               g_str_has_prefix (msg, "$QZ" "GGA");    /* QZSS */
+}
+
+/**
+ * gclue_nmea_is_rmc:
+ * @msg: NMEA sentence
+ *
+ * Returns: whether given NMEA sentence is a RMC
+ **/
+gboolean
+gclue_nmea_is_rmc (const char *msg)
+{
+        return g_str_has_prefix (msg, "$GA" "RMC") ||  /* Galieo */
+               g_str_has_prefix (msg, "$GB" "RMC") ||  /* BeiDou */
+               g_str_has_prefix (msg, "$BD" "RMC") ||  /* BeiDou */
+               g_str_has_prefix (msg, "$GL" "RMC") ||  /* GLONASS */
+               g_str_has_prefix (msg, "$GN" "RMC") ||  /* GNSS (combined) */
+               g_str_has_prefix (msg, "$GP" "RMC") ||  /* GPS, SBAS, QZSS */
+               g_str_has_prefix (msg, "$QZ" "RMC");    /* QZSS */
+
+}
+
+/**
+ * gclue_nmea_is_nmea:
+ * @msg: sentence
+ *
+ * Returns: whether given sentence is valid NMEA
+ **/
+gboolean
+gclue_nmea_is_nmea(const char *msg)
+{
+        return gclue_nmea_is_gga(msg) || gclue_nmea_is_rmc(msg);
+}
+
 static void
-on_read_gga_sentence (GObject      *object,
-                      GAsyncResult *result,
-                      gpointer      user_data)
+on_read_nmea_sentence (GObject      *object,
+                       GAsyncResult *result,
+                       gpointer      user_data)
 {
         GClueNMEASource *source = GCLUE_NMEA_SOURCE (user_data);
         GDataInputStream *data_input_stream = G_DATA_INPUT_STREAM (object);
@@ -482,19 +531,12 @@ on_read_gga_sentence (GObject      *object,
         }
         g_debug ("Network source sent: \"%s\"", message);
 
-        if (!g_str_has_prefix (message, "$GAGGA") &&  /* Galieo */
-            !g_str_has_prefix (message, "$GBGGA") &&  /* BeiDou */
-            !g_str_has_prefix (message, "$BDGGA") &&  /* BeiDou */
-            !g_str_has_prefix (message, "$GLGGA") &&  /* GLONASS */
-            !g_str_has_prefix (message, "$GNGGA") &&  /* GNSS (combined) */
-            !g_str_has_prefix (message, "$GPGGA") &&  /* GPS, SBAS, QZSS */
-            !g_str_has_prefix (message, "$QZGGA")) {  /* QZSS */
-                g_debug ("Ignoring non-GGA sentence from NMEA source");
-
+        if (!gclue_nmea_is_gga (message)) {
+                g_debug ("Ignoring NMEA sentence, as it's not GGA: %s", message);
                 goto READ_NEXT_LINE;
-        }
+         }
 
-        location = gclue_location_create_from_gga (message, &error);
+        location = gclue_location_create_from_nmea (message, &error);
 
         if (error != NULL) {
                 g_warning ("Error: %s", error->message);
@@ -508,7 +550,7 @@ READ_NEXT_LINE:
         g_data_input_stream_read_line_async (data_input_stream,
                                              G_PRIORITY_DEFAULT,
                                              source->priv->cancellable,
-                                             on_read_gga_sentence,
+                                             on_read_nmea_sentence,
                                              source);
 }
 
@@ -543,7 +585,7 @@ on_connection_to_location_server (GObject      *object,
         g_data_input_stream_read_line_async (data_input_stream,
                                              G_PRIORITY_DEFAULT,
                                              source->priv->cancellable,
-                                             on_read_gga_sentence,
+                                             on_read_nmea_sentence,
                                              source);
 }
 

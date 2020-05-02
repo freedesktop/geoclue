@@ -64,7 +64,10 @@ struct _GClueNMEASourceClass {
         GClueLocationSourceClass parent_class;
 };
 
-GClueNMEASource * gclue_nmea_source_get_singleton (void);
+GClueNMEASource *gclue_nmea_source_get_singleton (void);
+gboolean         gclue_nmea_is_gga               (const char *msg);
+gboolean         gclue_nmea_is_rmc               (const char *msg);
+gboolean         gclue_nmea_is_nmea              (const char *msg);
 
 G_END_DECLS
 
