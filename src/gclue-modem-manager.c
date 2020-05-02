@@ -24,6 +24,7 @@
 #include <string.h>
 #include <libmm-glib.h>
 #include "gclue-modem-manager.h"
+#include "gclue-nmea-source.h"
 #include "gclue-marshal.h"
 
 /**
@@ -383,7 +384,7 @@ on_get_gps_nmea_ready (GObject      *source_object,
         GClueModemManagerPrivate *priv = manager->priv;
         MMModemLocation *modem_location = MM_MODEM_LOCATION (source_object);
         MMLocationGpsNmea *location_nmea;
-        const char *gga;
+        const char *sentence;
         GError *error = NULL;
 
         location_nmea = mm_modem_location_get_gps_nmea_finish (modem_location,
@@ -401,21 +402,29 @@ on_get_gps_nmea_ready (GObject      *source_object,
                 return;
         }
 
-        gga = mm_location_gps_nmea_get_trace (location_nmea, "$GPGGA");
-        if (gga == NULL) {
-                g_debug ("No GGA trace");
-                return;
+        sentence = mm_location_gps_nmea_get_trace (location_nmea, "$GPGGA");
+        if (sentence != NULL && gclue_nmea_is_gga (sentence)) {
+                if (is_location_gga_same (manager, sentence)) {
+                        g_debug ("New GGA trace is same as last one: %s", sentence);
+                        return;
+                }
+                g_debug ("New GPGGA trace: %s", sentence);
+                goto new_trace;
+        }
+        sentence = mm_location_gps_nmea_get_trace (location_nmea, "$GPRMC");
+        if (sentence != NULL && gclue_nmea_is_rmc (sentence)) {
+                g_debug ("New GPRMC trace: %s", sentence);
+                goto new_trace;
         }
 
-        if (is_location_gga_same (manager, gga)) {
-                g_debug ("New GGA trace is same as last one: %s", gga);
-                return;
-        }
+        g_debug ("No GGA or RMC trace");
+        goto out;
+
+new_trace:
+        g_signal_emit (manager, signals[FIX_GPS], 0, sentence);
+out:
         g_clear_object (&priv->location_nmea);
         priv->location_nmea = location_nmea;
-
-        g_debug ("New GPGGA trace: %s", gga);
-        g_signal_emit (manager, signals[FIX_GPS], 0, gga);
 }
 
 static void

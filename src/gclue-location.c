@@ -597,17 +597,7 @@ gclue_location_new_full (gdouble     latitude,
                              NULL);
 }
 
-/**
- * gclue_location_create_from_gga:
- * @gga: NMEA GGA sentence
- * @error: Place-holder for errors.
- *
- * Creates a new #GClueLocation object from a GGA sentence.
- *
- * Returns: a new #GClueLocation object, or %NULL on error. Unref using
- * #g_object_unref() when done with it.
- **/
-GClueLocation *
+static GClueLocation *
 gclue_location_create_from_gga (const char *gga, GError **error)
 {
         GClueLocation *location = NULL;

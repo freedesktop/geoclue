@@ -137,9 +137,6 @@ GClueLocation *gclue_location_new_full
                                    guint64     timestamp,
                                    const char *description);
 
-GClueLocation *gclue_location_create_from_gga
-                                  (const char *gga,
-                                   GError    **error);
 GClueLocation *gclue_location_create_from_nmea
                                   (const char    *nmea,
                                    GClueLocation *prev_location,
