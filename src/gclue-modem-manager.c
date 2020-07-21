@@ -278,6 +278,15 @@ is_location_3gpp_same (GClueModemManager *manager,
         mcc = mm_location_3gpp_get_mobile_country_code (priv->location_3gpp);
         mnc = mm_location_3gpp_get_mobile_network_code (priv->location_3gpp);
         lac = mm_location_3gpp_get_location_area_code (priv->location_3gpp);
+
+        // Most likely this is an LTE connection and with the mozilla
+        // services they use the tracking area code in place of the
+        // location area code in this case.
+        // https://ichnaea.readthedocs.io/en/latest/api/geolocate.html#cell-tower-fields
+        if (lac == 0x0 || lac == 0xFFFE) {
+                lac = mm_location_3gpp_get_tracking_area_code(priv->location_3gpp);
+        }
+
         cell_id = mm_location_3gpp_get_cell_id (priv->location_3gpp);
 
         return (mcc == new_mcc &&
@@ -317,6 +326,15 @@ on_get_3gpp_ready (GObject      *source_object,
         mcc = mm_location_3gpp_get_mobile_country_code (location_3gpp);
         mnc = mm_location_3gpp_get_mobile_network_code (location_3gpp);
         lac = mm_location_3gpp_get_location_area_code (location_3gpp);
+
+	// Most likely this is an LTE connection and with the mozilla
+	// services they use the tracking area code in place of the
+	// location area code in this case.
+	// https://ichnaea.readthedocs.io/en/latest/api/geolocate.html#cell-tower-fields
+	if (lac == 0x0 || lac == 0xFFFE) {
+		lac = mm_location_3gpp_get_tracking_area_code(location_3gpp);
+	}
+
         cell_id = mm_location_3gpp_get_cell_id (location_3gpp);
 
         if (is_location_3gpp_same (manager, mcc, mnc, lac, cell_id)) {
