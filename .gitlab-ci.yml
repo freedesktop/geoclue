@@ -8,16 +8,6 @@ before_script:
 
 # Ubuntu 14.04 is not supported, see README for details
 #
-# FIXME: Also disable gtk-doc on Ubuntu 16.04 cause it fails install. Would be nice to get it fixed.
-
-ubuntu-16.04:
-    image: ubuntu:xenial
-    artifacts:
-        when: always
-        name: "xenial-${CI_COMMIT_REF_NAME}"
-        paths:
-            - "${CI_PROJECT_DIR}/build"
-    script: meson -Dgtk-doc=false build && ninja -C build && ninja -C build test && ninja -C build install
 
 ubuntu-18.04:
     image: ubuntu:bionic
