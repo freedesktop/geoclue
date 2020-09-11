@@ -56,6 +56,8 @@ struct _GClueSimpleClass
         GObjectClass parent_class;
 };
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (GClueSimple, g_object_unref)
+
 GType           gclue_simple_get_type     (void) G_GNUC_CONST;
 
 void            gclue_simple_new          (const char         *desktop_id,
