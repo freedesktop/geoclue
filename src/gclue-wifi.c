@@ -51,6 +51,19 @@ gclue_wifi_start (GClueLocationSource *source);
 static gboolean
 gclue_wifi_stop (GClueLocationSource *source);
 
+static guint
+variant_hash (gconstpointer key);
+
+static void
+gclue_wifi_refresh_async (GClueWebSource      *source,
+                          GCancellable        *cancellable,
+                          GAsyncReadyCallback  callback,
+                          gpointer             user_data);
+static GClueLocation *
+gclue_wifi_refresh_finish (GClueWebSource  *source,
+                           GAsyncResult    *result,
+                           GError         **error);
+
 struct _GClueWifiPrivate {
         WPASupplicant *supplicant;
         WPAInterface *interface;
@@ -65,6 +78,8 @@ struct _GClueWifiPrivate {
         guint scan_timeout;
 
         GClueAccuracyLevel accuracy_level;
+
+        GHashTable *location_cache;  /* (element-type GVariant GClueLocation) (owned) */
 };
 
 enum
@@ -118,6 +133,7 @@ gclue_wifi_finalize (GObject *gwifi)
         g_clear_object (&wifi->priv->interface);
         g_clear_pointer (&wifi->priv->bss_proxies, g_hash_table_unref);
         g_clear_pointer (&wifi->priv->ignored_bss_proxies, g_hash_table_unref);
+        g_clear_pointer (&wifi->priv->location_cache, g_hash_table_unref);
 }
 
 static void
@@ -168,6 +184,8 @@ gclue_wifi_class_init (GClueWifiClass *klass)
 
         source_class->start = gclue_wifi_start;
         source_class->stop = gclue_wifi_stop;
+        web_class->refresh_async = gclue_wifi_refresh_async;
+        web_class->refresh_finish = gclue_wifi_refresh_finish;
         web_class->create_submit_query = gclue_wifi_create_submit_query;
         web_class->create_query = gclue_wifi_create_query;
         web_class->parse_response = gclue_wifi_parse_response;
@@ -703,6 +721,10 @@ gclue_wifi_init (GClueWifi *wifi)
                                                                  g_str_equal,
                                                                  g_free,
                                                                  g_object_unref);
+        wifi->priv->location_cache = g_hash_table_new_full (variant_hash,
+                                                            g_variant_equal,
+                                                            (GDestroyNotify) g_variant_unref,
+                                                            g_object_unref);
 }
 
 static void
@@ -875,4 +897,188 @@ gclue_wifi_create_submit_query (GClueWebSource  *source,
                                                  error);
         g_list_free (bss_list);
         return msg;
+}
+
+static void refresh_cb (GObject      *source_object,
+                        GAsyncResult *result,
+                        gpointer      user_data);
+
+static gint
+bss_compare (gconstpointer a,
+             gconstpointer b)
+{
+        WPABSS **_bss_a = (WPABSS **) a;
+        WPABSS **_bss_b = (WPABSS **) b;
+        WPABSS *bss_a = WPA_BSS (*_bss_a);
+        WPABSS *bss_b = WPA_BSS (*_bss_b);
+        GVariant *bssid_a = wpa_bss_get_bssid (bss_a);
+        GVariant *bssid_b = wpa_bss_get_bssid (bss_b);
+        g_autoptr(GBytes) bssid_bytes_a = NULL;
+        g_autoptr(GBytes) bssid_bytes_b = NULL;
+
+        /* Can’t use g_variant_compare() as it isn’t defined over `ay` types */
+        if (bssid_a == NULL && bssid_b == NULL)
+                return 0;
+        else if (bssid_a == NULL)
+                return -1;
+        else if (bssid_b == NULL)
+                return 1;
+
+        bssid_bytes_a = g_variant_get_data_as_bytes (bssid_a);
+        bssid_bytes_b = g_variant_get_data_as_bytes (bssid_b);
+
+        return g_bytes_compare (bssid_bytes_a, bssid_bytes_b);
+}
+
+static guint
+variant_hash (gconstpointer key)
+{
+        GVariant *variant = (GVariant *) key;
+        g_autoptr(GBytes) bytes = g_variant_get_data_as_bytes (variant);
+        return g_bytes_hash (bytes);
+}
+
+static GVariant *
+get_location_cache_key (GClueWifi *wifi)
+{
+        GHashTableIter iter;
+        gpointer value;
+        g_autoptr(GPtrArray) bss_array = g_ptr_array_new_with_free_func (NULL);  /* (element-type WPABSS) */
+        guint i;
+        GVariantBuilder builder;
+
+        /* The Mozilla service puts BSSID and signal strength for each BSS into
+         * its query. The signal strength can typically vary by ±5 for a
+         * stationary laptop, so quantise by that. Pack the whole lot into a
+         * #GVariant for simplicity, sorted by MAC address. The sorting has to
+         * happen in an array beforehand, as variants are immutable. */
+        g_hash_table_iter_init (&iter, wifi->priv->bss_proxies);
+
+        while (g_hash_table_iter_next (&iter, NULL, &value)) {
+                WPABSS *bss = WPA_BSS (value);
+                if (bss != NULL)
+                        g_ptr_array_add (bss_array, bss);
+        }
+
+        g_ptr_array_sort (bss_array, bss_compare);
+
+        /* Serialise to a variant. */
+        g_variant_builder_init (&builder, G_VARIANT_TYPE ("a(ayn)"));
+        for (i = 0; i < bss_array->len; i++) {
+                WPABSS *bss = WPA_BSS (bss_array->pdata[i]);
+                GVariant *bssid;
+
+                g_variant_builder_open (&builder, G_VARIANT_TYPE ("(ayn)"));
+
+                bssid = wpa_bss_get_bssid (bss);
+                if (bssid == NULL)
+                        continue;
+
+                g_variant_builder_add_value (&builder, bssid);
+                g_variant_builder_add (&builder, "n", wpa_bss_get_signal (bss) / 10);
+
+                g_variant_builder_close (&builder);
+        }
+
+        return g_variant_builder_end (&builder);
+}
+
+static GClueLocation *
+duplicate_location_new_timestamp (GClueLocation *location)
+{
+        return g_object_new (GCLUE_TYPE_LOCATION,
+                             "latitude", gclue_location_get_latitude (location),
+                             "longitude", gclue_location_get_longitude (location),
+                             "accuracy", gclue_location_get_accuracy (location),
+                             "altitude", gclue_location_get_altitude (location),
+                             "timestamp", 0,
+                             "speed", gclue_location_get_speed (location),
+                             "heading", gclue_location_get_heading (location),
+                             NULL);
+}
+
+static void
+gclue_wifi_refresh_async (GClueWebSource      *source,
+                          GCancellable        *cancellable,
+                          GAsyncReadyCallback  callback,
+                          gpointer             user_data)
+{
+        GClueWifi *wifi = GCLUE_WIFI (source);
+        g_autoptr(GTask) task = g_task_new (source, cancellable, callback, user_data);
+        g_autoptr(GVariant) cache_key = get_location_cache_key (wifi);
+        g_autofree gchar *cache_key_str = g_variant_print (cache_key, FALSE);
+        GClueLocation *cached_location = g_hash_table_lookup (wifi->priv->location_cache, cache_key);
+
+        g_task_set_source_tag (task, gclue_wifi_refresh_async);
+        g_task_set_task_data (task, g_steal_pointer (&cache_key), (GDestroyNotify) g_variant_unref);
+
+        if (gclue_location_source_get_active (GCLUE_LOCATION_SOURCE (source))) {
+                /* Try the cache. */
+                if (cached_location != NULL) {
+                        g_autoptr(GClueLocation) new_location = NULL;
+
+                        g_debug ("Cache hit for key %s: got location %p (%s)",
+                                 cache_key_str, cached_location,
+                                 gclue_location_get_description (cached_location));
+
+                        /* Duplicate the location so its timestamp is updated. */
+                        new_location = duplicate_location_new_timestamp (cached_location);
+                        gclue_location_source_set_location (GCLUE_LOCATION_SOURCE (source), new_location);
+
+                        g_task_return_pointer (task, g_steal_pointer (&new_location), g_object_unref);
+                        return;
+                }
+
+                g_debug ("Cache miss for key %s; querying web service", cache_key_str);
+        }
+
+        /* Fall back to querying the web service. */
+        GCLUE_WEB_SOURCE_CLASS (gclue_wifi_parent_class)->refresh_async (source, cancellable, refresh_cb, g_steal_pointer (&task));
+}
+
+static void
+refresh_cb (GObject      *source_object,
+            GAsyncResult *result,
+            gpointer      user_data)
+{
+        GClueWebSource *source = GCLUE_WEB_SOURCE (source_object);
+        GClueWifi *wifi = GCLUE_WIFI (source);
+        g_autoptr(GTask) task = g_steal_pointer (&user_data);
+        g_autoptr(GClueLocation) location = NULL;
+        g_autoptr(GError) local_error = NULL;
+        GVariant *cache_key;
+        g_autofree gchar *cache_key_str = NULL;
+
+        /* Finish querying the web service. */
+        location = GCLUE_WEB_SOURCE_CLASS (gclue_wifi_parent_class)->refresh_finish (source, result, &local_error);
+
+        if (local_error != NULL) {
+                g_task_return_error (task, g_steal_pointer (&local_error));
+                return;
+        }
+
+        /* Cache the result. */
+        cache_key = g_task_get_task_data (task);
+        cache_key_str = g_variant_print (cache_key, FALSE);
+        g_hash_table_replace (wifi->priv->location_cache, g_variant_ref (cache_key), g_object_ref (location));
+
+        g_debug ("Adding %s / %s to cache (new size: %u)",
+                 cache_key_str,
+                 gclue_location_get_description (location),
+                 g_hash_table_size (wifi->priv->location_cache));
+
+        /* Update the location and return. */
+        gclue_location_source_set_location (GCLUE_LOCATION_SOURCE (source), location);
+
+        g_task_return_pointer (task, g_steal_pointer (&location), g_object_unref);
+}
+
+static GClueLocation *
+gclue_wifi_refresh_finish (GClueWebSource  *source,
+                           GAsyncResult    *result,
+                           GError         **error)
+{
+        GTask *task = G_TASK (result);
+
+        return g_task_propagate_pointer (task, error);
 }
