@@ -323,6 +323,7 @@ gclue_locator_finalize (GObject *gsource)
         }
         g_list_free_full (priv->sources, g_object_unref);
         priv->sources = NULL;
+        g_list_free (priv->active_sources);
         priv->active_sources = NULL;
 
         G_OBJECT_CLASS (gclue_locator_parent_class)->finalize (gsource);
