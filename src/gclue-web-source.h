@@ -62,6 +62,14 @@ struct _GClueWebSourceClass {
         /* <private> */
         GClueLocationSourceClass parent_class;
 
+        void              (*refresh_async)       (GClueWebSource       *source,
+                                                  GCancellable         *cancellable,
+                                                  GAsyncReadyCallback   callback,
+                                                  gpointer              user_data);
+        GClueLocation    *(*refresh_finish)      (GClueWebSource       *source,
+                                                  GAsyncResult         *result,
+                                                  GError              **error);
+
         SoupMessage *     (*create_query)        (GClueWebSource *source,
                                                   GError        **error);
         SoupMessage *     (*create_submit_query) (GClueWebSource  *source,
