@@ -168,49 +168,21 @@ gclue_web_source_real_refresh_finish (GClueWebSource  *source,
 }
 
 static void
-query_callback (SoupSession *session,
-                SoupMessage *query,
-                gpointer     user_data)
+query_callback (GObject      *source_object,
+                GAsyncResult *result,
+                gpointer      user_data)
 {
-        GClueWebSource *web;
-        GError *error = NULL;
-        char *contents;
-        char *str;
-        GClueLocation *location;
-        SoupURI *uri;
+        GClueWebSource *web = GCLUE_WEB_SOURCE (source_object);
+        g_autoptr(GError) local_error = NULL;
+        g_autoptr(GClueLocation) location = NULL;
 
-        if (query->status_code == SOUP_STATUS_CANCELLED)
-                return;
+        location = GCLUE_WEB_SOURCE_GET_CLASS (web)->refresh_finish (web, result, &local_error);
 
-        web = GCLUE_WEB_SOURCE (user_data);
-        web->priv->query = NULL;
-
-        if (query->status_code != SOUP_STATUS_OK) {
-                g_warning ("Failed to query location: %s", query->reason_phrase);
-		return;
-	}
-
-        contents = g_strndup (query->response_body->data, query->response_body->length);
-        uri = soup_message_get_uri (query);
-        str = soup_uri_to_string (uri, FALSE);
-        g_debug ("Got following response from '%s':\n%s",
-                 str,
-                 contents);
-        g_free (str);
-        location = GCLUE_WEB_SOURCE_GET_CLASS (web)->parse_response (web,
-                                                                     contents,
-                                                                     &error);
-        g_free (contents);
-        if (error != NULL) {
-                g_warning ("Failed to parse following response: %s\n%s",
-                           error->message,
-                           contents);
+        if (local_error != NULL &&
+            !g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_NOT_INITIALIZED)) {
+                g_warning ("Failed to query location: %s", local_error->message);
                 return;
         }
-
-        gclue_location_source_set_location (GCLUE_LOCATION_SOURCE (web),
-                                            location);
-        g_object_unref (location);
 }
 
 static gboolean
@@ -249,41 +221,13 @@ on_network_changed (GNetworkMonitor *monitor G_GNUC_UNUSED,
                     gpointer         user_data)
 {
         GClueWebSource *web = GCLUE_WEB_SOURCE (user_data);
-        GError *error = NULL;
         gboolean last_available = web->priv->internet_available;
 
         web->priv->internet_available = get_internet_available ();
         if (last_available == web->priv->internet_available)
                 return; /* We already reacted to network change */
 
-        refresh_accuracy_level (web);
-
-        if (!gclue_location_source_get_active (GCLUE_LOCATION_SOURCE (user_data)))
-                return;
-
-        if (!web->priv->internet_available) {
-                g_debug ("Network unavailable");
-                return;
-        }
-        g_debug ("Network available");
-
-        if (web->priv->query != NULL)
-                return;
-
-        web->priv->query = GCLUE_WEB_SOURCE_GET_CLASS (web)->create_query
-                                        (web,
-                                         &error);
-
-        if (web->priv->query == NULL) {
-                g_warning ("Failed to create query: %s", error->message);
-                g_error_free (error);
-                return;
-        }
-
-        soup_session_queue_message (web->priv->soup_session,
-                                    web->priv->query,
-                                    query_callback,
-                                    web);
+        GCLUE_WEB_SOURCE_GET_CLASS (web)->refresh_async (web, NULL, query_callback, NULL);
 }
 
 static void
@@ -387,10 +331,7 @@ gclue_web_source_refresh (GClueWebSource *source)
 {
         g_return_if_fail (GCLUE_IS_WEB_SOURCE (source));
 
-        /* Make sure ->internet_available is different from
-         * the real availability of internet access */
-        source->priv->internet_available = FALSE;
-        on_network_changed (NULL, TRUE, source);
+        GCLUE_WEB_SOURCE_GET_CLASS (source)->refresh_async (source, NULL, query_callback, NULL);
 }
 
 static gboolean
