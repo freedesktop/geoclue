@@ -29,7 +29,7 @@
 #include "gclue-mozilla.h"
 
 #define WIFI_SCAN_TIMEOUT_HIGH_ACCURACY 10
-/* Since this is only used for city-level accuracy, 5 minutes betweeen each
+/* Since this is only used for city-level accuracy, 5 minutes between each
  * scan is more than enough.
  */
 #define WIFI_SCAN_TIMEOUT_LOW_ACCURACY  300
