@@ -58,6 +58,8 @@ struct _GClueLocationClass
         GObjectClass parent_class;
 };
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (GClueLocation, g_object_unref)
+
 GType gclue_location_get_type (void);
 
 /**
