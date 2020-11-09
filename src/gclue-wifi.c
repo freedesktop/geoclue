@@ -840,7 +840,9 @@ gclue_wifi_create_query (GClueWebSource *source,
         GList *bss_list; /* As in Access Points */
         SoupMessage *msg;
 
-        bss_list = get_bss_list (GCLUE_WIFI (source), NULL);
+        bss_list = get_bss_list (GCLUE_WIFI (source), error);
+        if (bss_list == NULL)
+                return NULL;
 
         msg = gclue_mozilla_create_query (bss_list, NULL, error);
         g_list_free (bss_list);
