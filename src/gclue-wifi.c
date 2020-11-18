@@ -284,7 +284,7 @@ on_bss_signal_notify (GObject    *gobject,
 
                 get_bssid_from_bss (bss, bssid);
                 g_debug ("WiFi AP '%s' still has very low strength (%u dBm)"
-                         ", ignoring again..",
+                         ", ignoring again…",
                          bssid,
                          wpa_bss_get_signal (bss));
                 return;
@@ -331,7 +331,7 @@ on_bss_proxy_ready (GObject      *source_object,
 
                 get_bssid_from_bss (bss, bssid);
                 g_debug ("WiFi AP '%s' has very low strength (%u dBm)"
-                         ", ignoring for now..",
+                         ", ignoring for now…",
                          bssid,
                          wpa_bss_get_signal (bss));
                 g_signal_connect (G_OBJECT (bss),
@@ -421,7 +421,7 @@ on_scan_timeout (gpointer user_data)
         if (priv->interface == NULL)
                 return FALSE;
 
-        g_debug ("WiFi scan timeout. Restarting-scan..");
+        g_debug ("WiFi scan timeout. Restarting scan…");
         priv->scan_timeout = 0;
 
         if (priv->scan_done_id == 0)
@@ -467,7 +467,7 @@ on_scan_done (WPAInterface *object,
 
         if (priv->bss_list_changed) {
                 priv->bss_list_changed = FALSE;
-                g_debug ("Refreshing location..");
+                g_debug ("Refreshing location…");
                 gclue_web_source_refresh (GCLUE_WEB_SOURCE (wifi));
         }
 
