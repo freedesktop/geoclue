@@ -90,6 +90,11 @@ struct _GClueWifiPrivate {
 
         GHashTable *location_cache;  /* (element-type GVariant GClueLocation) (owned) */
         guint cache_prune_timeout_id;
+
+#if GLIB_CHECK_VERSION(2, 64, 0)
+        GMemoryMonitor *memory_monitor;
+        gulong low_memory_warning_id;
+#endif
 };
 
 enum
@@ -641,6 +646,17 @@ cache_prune (GClueWifi *wifi)
                  old_cache_size, g_hash_table_size (priv->location_cache));
 }
 
+#if GLIB_CHECK_VERSION(2, 64, 0)
+static void
+cache_empty (GClueWifi *wifi)
+{
+        GClueWifiPrivate *priv = wifi->priv;
+
+        g_debug ("Emptying cache");
+        g_hash_table_remove_all (priv->location_cache);
+}
+#endif  /* GLib ≥ 2.64.0 */
+
 static gboolean
 cache_prune_timeout_cb (gpointer user_data)
 {
@@ -650,6 +666,21 @@ cache_prune_timeout_cb (gpointer user_data)
 
         return G_SOURCE_CONTINUE;
 }
+
+#if GLIB_CHECK_VERSION(2, 64, 0)
+static void
+low_memory_warning_cb (GMemoryMonitor             *memory_monitor,
+                       GMemoryMonitorWarningLevel  level,
+                       gpointer                    user_data)
+{
+        GClueWifi *wifi = GCLUE_WIFI (user_data);
+
+        if (level == G_MEMORY_MONITOR_WARNING_LEVEL_LOW)
+                cache_prune (wifi);
+        else if (level > G_MEMORY_MONITOR_WARNING_LEVEL_LOW)
+                cache_empty (wifi);
+}
+#endif  /* GLib ≥ 2.64.0 */
 
 static void
 connect_cache_prune_timeout (GClueWifi *wifi)
@@ -666,6 +697,16 @@ connect_cache_prune_timeout (GClueWifi *wifi)
         priv->cache_prune_timeout_id = g_timeout_add_seconds (CACHE_ENTRY_MAX_AGE_SECONDS / 2,
                                                               cache_prune_timeout_cb,
                                                               wifi);
+
+#if GLIB_CHECK_VERSION(2, 64, 0)
+        if (priv->memory_monitor == NULL) {
+                priv->memory_monitor = g_memory_monitor_dup_default ();
+                priv->low_memory_warning_id = g_signal_connect (priv->memory_monitor,
+                                                                "low-memory-warning",
+                                                                G_CALLBACK (low_memory_warning_cb),
+                                                                wifi);
+        }
+#endif
 }
 
 static void
@@ -677,6 +718,12 @@ disconnect_cache_prune_timeout (GClueWifi *wifi)
 
         /* Run one last prune. */
         cache_prune (wifi);
+
+#if GLIB_CHECK_VERSION(2, 64, 0)
+        if (priv->low_memory_warning_id != 0 && priv->memory_monitor != NULL)
+                g_signal_handler_disconnect (priv->memory_monitor, priv->low_memory_warning_id);
+        g_clear_object (&priv->memory_monitor);
+#endif
 
         if (priv->cache_prune_timeout_id != 0)
                 g_source_remove (priv->cache_prune_timeout_id);
