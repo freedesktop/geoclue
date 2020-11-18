@@ -437,7 +437,7 @@ on_scan_timeout (gpointer user_data)
         GVariant *args;
 
         if (priv->interface == NULL)
-                return FALSE;
+                return G_SOURCE_REMOVE;
 
         g_debug ("WiFi scan timeout. Restarting-scan..");
         priv->scan_timeout = 0;
@@ -461,7 +461,7 @@ on_scan_timeout (gpointer user_data)
                                  on_scan_call_done,
                                  wifi);
 
-        return FALSE;
+        return G_SOURCE_REMOVE;
 }
 
 static void
