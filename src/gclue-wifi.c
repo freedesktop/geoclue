@@ -499,6 +499,15 @@ on_scan_done (WPAInterface *object,
                 gclue_web_source_refresh (GCLUE_WEB_SOURCE (wifi));
         }
 
+        /* If there was another scan already scheduled, cancel that and
+         * re-schedule. Regardless of our internal book-keeping, this can happen
+         * if wpa_supplicant emits the `ScanDone` signal due to a scan being
+         * initiated by another client. */
+        if (priv->scan_timeout != 0) {
+                g_source_remove (priv->scan_timeout);
+                priv->scan_timeout = 0;
+        }
+
         /* With high-enough accuracy requests, we need to scan more often since
          * user's location can change quickly. With low accuracy, we don't since
          * we wouldn't want to drain power unnecessarily.
