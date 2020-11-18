@@ -412,6 +412,35 @@ on_bss_removed (WPAInterface *object,
 }
 
 static void
+start_wifi_scan (GClueWifi *wifi)
+{
+        GClueWifiPrivate *priv = wifi->priv;
+        GVariantBuilder builder;
+        GVariant *args;
+
+        g_debug ("Starting WiFi scan…");
+
+        if (priv->scan_done_id == 0)
+                priv->scan_done_id = g_signal_connect
+                                        (priv->interface,
+                                         "scan-done",
+                                         G_CALLBACK (on_scan_done),
+                                         wifi);
+
+        g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
+        g_variant_builder_add (&builder,
+                               "{sv}",
+                               "Type", g_variant_new ("s", "passive"));
+        args = g_variant_builder_end (&builder);
+
+        wpa_interface_call_scan (WPA_INTERFACE (priv->interface),
+                                 args,
+                                 NULL,
+                                 on_scan_call_done,
+                                 wifi);
+}
+
+static void
 cancel_wifi_scan (GClueWifi *wifi)
 {
         GClueWifiPrivate *priv = wifi->priv;
@@ -433,33 +462,14 @@ on_scan_timeout (gpointer user_data)
 {
         GClueWifi *wifi = GCLUE_WIFI (user_data);
         GClueWifiPrivate *priv = wifi->priv;
-        GVariantBuilder builder;
-        GVariant *args;
+
+        g_debug ("WiFi scan timeout.");
+        priv->scan_timeout = 0;
 
         if (priv->interface == NULL)
                 return G_SOURCE_REMOVE;
 
-        g_debug ("WiFi scan timeout. Restarting scan…");
-        priv->scan_timeout = 0;
-
-        if (priv->scan_done_id == 0)
-                priv->scan_done_id = g_signal_connect
-                                        (priv->interface,
-                                         "scan-done",
-                                         G_CALLBACK (on_scan_done),
-                                         wifi);
-
-        g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
-        g_variant_builder_add (&builder,
-                               "{sv}",
-                               "Type", g_variant_new ("s", "passive"));
-        args = g_variant_builder_end (&builder);
-
-        wpa_interface_call_scan (WPA_INTERFACE (priv->interface),
-                                 args,
-                                 NULL,
-                                 on_scan_call_done,
-                                 wifi);
+        start_wifi_scan (wifi);
 
         return G_SOURCE_REMOVE;
 }
@@ -540,7 +550,7 @@ connect_bss_signals (GClueWifi *wifi)
                 return;
         }
 
-        on_scan_timeout (wifi);
+        start_wifi_scan (wifi);
 
         priv->bss_list_changed = TRUE;
         priv->bss_added_id = g_signal_connect (priv->interface,
