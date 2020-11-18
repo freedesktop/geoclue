@@ -38,6 +38,12 @@
 #define BSSID_STR_LEN 18
 #define MAX_SSID_LEN 32
 
+/* Drop entries from the cache when they are more than 48 hours old. If we are
+ * polling at high accuracy for that entire period, that gives a maximum cache
+ * size of 17280 entries. At roughly 400B each, that’s about 7MB of heap for a
+ * full cache (excluding overheads). */
+#define CACHE_ENTRY_MAX_AGE_SECONDS (48 * 60 * 60)
+
 /**
  * SECTION:gclue-wifi
  * @short_description: WiFi-based geolocation
@@ -64,6 +70,9 @@ gclue_wifi_refresh_finish (GClueWebSource  *source,
                            GAsyncResult    *result,
                            GError         **error);
 
+static void
+disconnect_cache_prune_timeout (GClueWifi *wifi);
+
 struct _GClueWifiPrivate {
         WPASupplicant *supplicant;
         WPAInterface *interface;
@@ -80,6 +89,7 @@ struct _GClueWifiPrivate {
         GClueAccuracyLevel accuracy_level;
 
         GHashTable *location_cache;  /* (element-type GVariant GClueLocation) (owned) */
+        guint cache_prune_timeout_id;
 };
 
 enum
@@ -129,6 +139,8 @@ gclue_wifi_finalize (GObject *gwifi)
         G_OBJECT_CLASS (gclue_wifi_parent_class)->finalize (gwifi);
 
         disconnect_bss_signals (wifi);
+        disconnect_cache_prune_timeout (wifi);
+
         g_clear_object (&wifi->priv->supplicant);
         g_clear_object (&wifi->priv->interface);
         g_clear_pointer (&wifi->priv->bss_proxies, g_hash_table_unref);
@@ -604,6 +616,73 @@ disconnect_bss_signals (GClueWifi *wifi)
         g_hash_table_remove_all (priv->ignored_bss_proxies);
 }
 
+static void
+cache_prune (GClueWifi *wifi)
+{
+        GClueWifiPrivate *priv = wifi->priv;
+        GHashTableIter iter;
+        gpointer value;
+        guint64 cutoff_seconds;
+        guint old_cache_size;
+
+        old_cache_size = g_hash_table_size (priv->location_cache);
+        cutoff_seconds = g_get_real_time () / G_USEC_PER_SEC - CACHE_ENTRY_MAX_AGE_SECONDS;
+
+        g_hash_table_iter_init (&iter, priv->location_cache);
+        while (g_hash_table_iter_next (&iter, NULL, &value)) {
+                GClueLocation *location = GCLUE_LOCATION (value);
+                guint64 timestamp_seconds = gclue_location_get_timestamp (location);
+
+                if (timestamp_seconds <= cutoff_seconds)
+                        g_hash_table_iter_remove (&iter);
+        }
+
+        g_debug ("Pruned cache (old size: %u, new size: %u)",
+                 old_cache_size, g_hash_table_size (priv->location_cache));
+}
+
+static gboolean
+cache_prune_timeout_cb (gpointer user_data)
+{
+        GClueWifi *wifi = GCLUE_WIFI (user_data);
+
+        cache_prune (wifi);
+
+        return G_SOURCE_CONTINUE;
+}
+
+static void
+connect_cache_prune_timeout (GClueWifi *wifi)
+{
+        GClueWifiPrivate *priv = wifi->priv;
+
+        g_debug ("Connecting cache prune timeout");
+
+        /* Run the prune at twice the expiry frequency, which should allow us to
+         * sample often enough to keep the expiries at that frequency, as per
+         * Nyquist. */
+        if (priv->cache_prune_timeout_id != 0)
+                g_source_remove (priv->cache_prune_timeout_id);
+        priv->cache_prune_timeout_id = g_timeout_add_seconds (CACHE_ENTRY_MAX_AGE_SECONDS / 2,
+                                                              cache_prune_timeout_cb,
+                                                              wifi);
+}
+
+static void
+disconnect_cache_prune_timeout (GClueWifi *wifi)
+{
+        GClueWifiPrivate *priv = wifi->priv;
+
+        g_debug ("Disconnecting cache prune timeout");
+
+        /* Run one last prune. */
+        cache_prune (wifi);
+
+        if (priv->cache_prune_timeout_id != 0)
+                g_source_remove (priv->cache_prune_timeout_id);
+        priv->cache_prune_timeout_id = 0;
+}
+
 static gboolean
 gclue_wifi_start (GClueLocationSource *source)
 {
@@ -615,6 +694,7 @@ gclue_wifi_start (GClueLocationSource *source)
         if (!base_class->start (source))
                 return FALSE;
 
+        connect_cache_prune_timeout (GCLUE_WIFI (source));
         connect_bss_signals (GCLUE_WIFI (source));
         return TRUE;
 }
@@ -631,6 +711,7 @@ gclue_wifi_stop (GClueLocationSource *source)
                 return FALSE;
 
         disconnect_bss_signals (GCLUE_WIFI (source));
+        disconnect_cache_prune_timeout (GCLUE_WIFI (source));
         return TRUE;
 }
 
