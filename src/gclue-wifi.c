@@ -837,6 +837,7 @@ gclue_wifi_get_accuracy_level (GClueWifi *wifi)
         return wifi->priv->accuracy_level;
 }
 
+/* Can return NULL without setting @error, signifying an empty BSS list. */
 static GList *
 get_bss_list (GClueWifi *wifi,
               GError   **error)
@@ -858,10 +859,22 @@ gclue_wifi_create_query (GClueWebSource *source,
 {
         GList *bss_list; /* As in Access Points */
         SoupMessage *msg;
+        g_autoptr(GError) local_error = NULL;
 
-        bss_list = get_bss_list (GCLUE_WIFI (source), error);
-        if (bss_list == NULL)
+        bss_list = get_bss_list (GCLUE_WIFI (source), &local_error);
+        if (local_error != NULL) {
+                g_propagate_error (error, g_steal_pointer (&local_error));
                 return NULL;
+        }
+
+        /* Empty list? */
+        if (bss_list == NULL) {
+                g_set_error_literal (error,
+                                     G_IO_ERROR,
+                                     G_IO_ERROR_FAILED,
+                                     "No WiFi networks found");
+                return NULL;
+        }
 
         msg = gclue_mozilla_create_query (bss_list, NULL, error);
         g_list_free (bss_list);
@@ -883,10 +896,22 @@ gclue_wifi_create_submit_query (GClueWebSource  *source,
 {
         GList *bss_list; /* As in Access Points */
         SoupMessage * msg;
+        g_autoptr(GError) local_error = NULL;
 
-        bss_list = get_bss_list (GCLUE_WIFI (source), error);
-        if (bss_list == NULL)
+        bss_list = get_bss_list (GCLUE_WIFI (source), &local_error);
+        if (local_error != NULL) {
+                g_propagate_error (error, g_steal_pointer (&local_error));
                 return NULL;
+        }
+
+        /* Empty list? */
+        if (bss_list == NULL) {
+                g_set_error_literal (error,
+                                     G_IO_ERROR,
+                                     G_IO_ERROR_FAILED,
+                                     "No WiFi networks found");
+                return NULL;
+        }
 
         msg = gclue_mozilla_create_submit_query (location,
                                                  bss_list,
