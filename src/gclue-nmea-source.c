@@ -34,6 +34,7 @@
 #include <avahi-common/malloc.h>
 #include <avahi-common/error.h>
 #include <avahi-glib/glib-watch.h>
+#include <gio/gunixsocketaddress.h>
 
 typedef struct AvahiServiceInfo AvahiServiceInfo;
 
@@ -201,6 +202,12 @@ add_new_service (GClueNMEASource *source,
         char *key, *value;
         GEnumClass *enum_class;
         GEnumValue *enum_value;
+
+        if (port == 0) {
+	        accuracy = GCLUE_ACCURACY_LEVEL_EXACT;
+
+	        goto CREATE_SERVICE;
+        }
 
         node = avahi_string_list_find (txt, "accuracy");
 
@@ -598,6 +605,8 @@ static void
 connect_to_service (GClueNMEASource *source)
 {
         GClueNMEASourcePrivate *priv = source->priv;
+        GSocketAddress *addr;
+        GSocketConnectable *connectable;
 
         if (priv->all_services == NULL)
                 return;
@@ -610,13 +619,23 @@ connect_to_service (GClueNMEASource *source)
          */
         priv->active_service = (AvahiServiceInfo *) priv->all_services->data;
 
-        g_socket_client_connect_to_host_async
-                (priv->client,
-                 priv->active_service->host_name,
-                 priv->active_service->port,
-                 priv->cancellable,
-                 on_connection_to_location_server,
-                 source);
+        if ( priv->active_service->port != 0 )
+		g_socket_client_connect_to_host_async
+			(priv->client,
+			 priv->active_service->host_name,
+			 priv->active_service->port,
+			 priv->cancellable,
+			 on_connection_to_location_server,
+			 source);
+        else {
+		addr = g_unix_socket_address_new(priv->active_service->host_name);
+		connectable = G_SOCKET_CONNECTABLE (addr);
+		g_socket_client_connect_async (priv->client,
+                               connectable,
+                               priv->cancellable,
+                               on_connection_to_location_server,
+                               source);
+        }
 }
 
 static void
@@ -693,6 +712,13 @@ gclue_nmea_source_init (GClueNMEASource *source)
         config = gclue_config_get_singleton ();
 
         nmea_socket = gclue_config_get_nmea_socket (config);
+        if (nmea_socket != NULL) {
+                add_new_service (source,
+                                 "nmea-socket",
+                                 nmea_socket,
+                                 0,
+                                 NULL);
+        }
 
         avahi_client_new (poll_api,
                           0,
