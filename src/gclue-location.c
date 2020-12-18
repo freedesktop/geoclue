@@ -493,6 +493,9 @@ parse_nmea_timestamp (const char *nmea_ts)
         now = g_date_time_new_now_utc ();
         ret = g_date_time_to_unix (now);
 
+	if( now == NULL)
+                goto parse_error;
+
         if (strlen (nmea_ts) < 6) {
                 if (strlen (nmea_ts) >= 1)
                         /* Empty string just means no ts, so no warning */
@@ -516,6 +519,8 @@ parse_nmea_timestamp (const char *nmea_ts)
                                   hours,
                                   minutes,
                                   seconds);
+        if (ts == NULL)
+                goto parse_error;
 
         if (g_date_time_difference (ts, now) > TIME_DIFF_THRESHOLD) {
                 g_debug ("NMEA timestamp '%s' in future. Assuming yesterday's.",
