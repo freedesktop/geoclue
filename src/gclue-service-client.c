@@ -330,7 +330,6 @@ on_agent_props_changed (GDBusProxy *agent_proxy,
         while (g_variant_iter_loop (iter, "{&sv}", &key, &value)) {
                 GClueAccuracyLevel max_accuracy;
                 const char *id;
-                gboolean system_app;
 
                 if (strcmp (key, "MaxAccuracyLevel") != 0)
                         continue;
@@ -338,8 +337,6 @@ on_agent_props_changed (GDBusProxy *agent_proxy,
                 gdbus_client = GCLUE_DBUS_CLIENT (client);
                 id = gclue_dbus_client_get_desktop_id (gdbus_client);
                 max_accuracy = g_variant_get_uint32 (value);
-                system_app = (gclue_client_info_get_xdg_id
-                              (client->priv->client_info) == NULL);
                 /* FIXME: We should be handling all values of max accuracy
                  *        level here, not just 0 and non-0.
                  */
@@ -354,8 +351,7 @@ on_agent_props_changed (GDBusProxy *agent_proxy,
                         start_client (client, accuracy);
                         g_debug ("Re-started '%s'.", id);
                 } else if (max_accuracy == 0 &&
-                           gclue_dbus_client_get_active (gdbus_client) &&
-                           !system_app) {
+                           gclue_dbus_client_get_active (gdbus_client)) {
                         stop_client (client);
                         client->priv->agent_stopped = TRUE;
                         g_debug ("Stopped '%s'.", id);
