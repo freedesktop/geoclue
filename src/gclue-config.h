@@ -73,6 +73,10 @@ GClueAppPerm        gclue_config_get_app_perm           (GClueConfig     *config
                                                          GClueClientInfo *app_info);
 gboolean            gclue_config_is_system_component    (GClueConfig     *config,
                                                          const char      *desktop_id);
+const char *        gclue_config_get_nmea_socket        (GClueConfig     *config);
+void                gclue_config_set_nmea_socket        (GClueConfig     *config,
+                                                         const char  *nmea_socket);
+
 const char *        gclue_config_get_wifi_url           (GClueConfig     *config);
 const char *        gclue_config_get_wifi_submit_url    (GClueConfig     *config);
 const char *        gclue_config_get_wifi_submit_nick   (GClueConfig     *config);

@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 #include <glib.h>
+#include "gclue-config.h"
 #include "gclue-nmea-source.h"
 #include "gclue-location.h"
 #include "config.h"
@@ -675,6 +676,8 @@ gclue_nmea_source_init (GClueNMEASource *source)
         AvahiServiceBrowser *service_browser;
         const AvahiPoll *poll_api;
         AvahiGLibPoll *glib_poll;
+        const char *nmea_socket;
+        GClueConfig *config;
         int error;
 
         source->priv = G_TYPE_INSTANCE_GET_PRIVATE ((source),
@@ -686,6 +689,10 @@ gclue_nmea_source_init (GClueNMEASource *source)
         poll_api = avahi_glib_poll_get (glib_poll);
 
         priv->cancellable = g_cancellable_new ();
+
+        config = gclue_config_get_singleton ();
+
+        nmea_socket = gclue_config_get_nmea_socket (config);
 
         avahi_client_new (poll_api,
                           0,

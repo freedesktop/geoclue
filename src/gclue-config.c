@@ -45,6 +45,7 @@ struct _GClueConfigPrivate
         gboolean enable_wifi_source;
         char *wifi_submit_url;
         char *wifi_submit_nick;
+        char *nmea_socket;
 
         GList *app_configs;
 };
@@ -433,6 +434,12 @@ gclue_config_is_system_component (GClueConfig *config,
 }
 
 const char *
+gclue_config_get_nmea_socket (GClueConfig *config)
+{
+        return config->priv->nmea_socket;
+}
+
+const char *
 gclue_config_get_wifi_url (GClueConfig *config)
 {
         return config->priv->wifi_url;
@@ -492,6 +499,13 @@ gboolean
 gclue_config_get_enable_nmea_source (GClueConfig *config)
 {
         return config->priv->enable_nmea_source;
+}
+
+void
+gclue_config_set_nmea_socket (GClueConfig *config,
+                                   const char  *nmea_socket)
+{
+        config->priv->nmea_socket = g_strdup(nmea_socket);
 }
 
 void

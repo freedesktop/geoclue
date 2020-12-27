@@ -18,6 +18,9 @@ whitelist=@demo_agent@gnome-shell;io.elementary.desktop.agent-geoclue2
 # Fetch location from NMEA sources on local network?
 enable=true
 
+# use aa nmea unix socket as the data source
+# nmea-socket=/var/run/gps-share.sock
+
 # 3G source configuration options
 [3g]
 
