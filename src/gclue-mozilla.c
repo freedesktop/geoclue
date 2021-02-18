@@ -40,8 +40,8 @@
  * its easy to switch to Google's API.
  **/
 
-#define BSSID_LEN 7
-#define BSSID_STR_LEN 18
+#define BSSID_LEN 6
+#define BSSID_STR_LEN 17
 #define MAX_SSID_LEN 32
 
 static guint
@@ -53,7 +53,7 @@ variant_to_string (GVariant *variant, guint max_len, char *ret)
         len = g_variant_n_children (variant);
         if (len == 0)
                 return 0;
-        g_return_val_if_fail(len < max_len, 0);
+        g_return_val_if_fail(len <= max_len, 0);
         ret[len] = '\0';
 
         for (i = 0; i < len; i++)
@@ -79,7 +79,7 @@ static gboolean
 get_bssid_from_bss (WPABSS *bss, char *bssid)
 {
         GVariant *variant;
-        char raw_bssid[BSSID_LEN] = { 0 };
+        char raw_bssid[BSSID_LEN + 1] = { 0 };
         guint raw_len, i;
 
         variant = wpa_bss_get_bssid (bss);
@@ -87,12 +87,12 @@ get_bssid_from_bss (WPABSS *bss, char *bssid)
                 return FALSE;
 
         raw_len = variant_to_string (variant, BSSID_LEN, raw_bssid);
-        g_return_val_if_fail (raw_len == BSSID_LEN - 1, FALSE);
+        g_return_val_if_fail (raw_len == BSSID_LEN, FALSE);
 
-        for (i = 0; i < BSSID_LEN - 1; i++) {
+        for (i = 0; i < BSSID_LEN; i++) {
                 unsigned char c = (unsigned char) raw_bssid[i];
 
-                if (i == BSSID_LEN - 2) {
+                if (i == BSSID_LEN - 1) {
                         g_snprintf (bssid + (i * 3), 3, "%02x", c);
                 } else {
                         g_snprintf (bssid + (i * 3), 4, "%02x:", c);
@@ -176,7 +176,7 @@ gclue_mozilla_create_query (GList        *bss_list, /* As in Access Points */
 
                 for (iter = bss_list; iter != NULL; iter = iter->next) {
                         WPABSS *bss = WPA_BSS (iter->data);
-                        char mac[BSSID_STR_LEN] = { 0 };
+                        char mac[BSSID_STR_LEN + 1] = { 0 };
                         gint16 strength_dbm;
 
                         if (gclue_mozilla_should_ignore_bss (bss))
@@ -349,7 +349,7 @@ gclue_mozilla_create_submit_query (GClueLocation   *location,
 
                 for (iter = bss_list; iter != NULL; iter = iter->next) {
                         WPABSS *bss = WPA_BSS (iter->data);
-                        char mac[BSSID_STR_LEN] = { 0 };
+                        char mac[BSSID_STR_LEN + 1] = { 0 };
                         gint16 strength_dbm;
                         guint16 frequency;
 
@@ -428,8 +428,8 @@ out:
 gboolean
 gclue_mozilla_should_ignore_bss (WPABSS *bss)
 {
-        char ssid[MAX_SSID_LEN] = { 0 };
-        char bssid[BSSID_STR_LEN] = { 0 };
+        char ssid[MAX_SSID_LEN + 1] = { 0 };
+        char bssid[BSSID_STR_LEN + 1] = { 0 };
         guint len;
 
         if (!get_bssid_from_bss (bss, bssid)) {

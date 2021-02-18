@@ -34,8 +34,8 @@
  */
 #define WIFI_SCAN_TIMEOUT_LOW_ACCURACY  300
 
-#define BSSID_LEN 7
-#define BSSID_STR_LEN 18
+#define BSSID_LEN 6
+#define BSSID_STR_LEN 17
 #define MAX_SSID_LEN 32
 
 /* Drop entries from the cache when they are more than 48 hours old. If we are
@@ -240,7 +240,7 @@ variant_to_string (GVariant *variant, guint max_len, char *ret)
         len = g_variant_n_children (variant);
         if (len == 0)
                 return 0;
-        g_return_val_if_fail(len < max_len, 0);
+        g_return_val_if_fail(len <= max_len, 0);
         ret[len] = '\0';
 
         for (i = 0; i < len; i++)
@@ -264,7 +264,7 @@ static gboolean
 get_bssid_from_bss (WPABSS *bss, char *bssid)
 {
         GVariant *variant;
-        char raw_bssid[BSSID_LEN] = { 0 };
+        char raw_bssid[BSSID_LEN + 1] = { 0 };
         guint raw_len, i;
 
         variant = wpa_bss_get_bssid (bss);
@@ -272,12 +272,12 @@ get_bssid_from_bss (WPABSS *bss, char *bssid)
                 return FALSE;
 
         raw_len = variant_to_string (variant, BSSID_LEN, raw_bssid);
-        g_return_val_if_fail (raw_len == BSSID_LEN - 1, FALSE);
+        g_return_val_if_fail (raw_len == BSSID_LEN, FALSE);
 
-        for (i = 0; i < BSSID_LEN - 1; i++) {
+        for (i = 0; i < BSSID_LEN; i++) {
                 unsigned char c = (unsigned char) raw_bssid[i];
 
-                if (i == BSSID_LEN - 2) {
+                if (i == BSSID_LEN - 1) {
                         g_snprintf (bssid + (i * 3), 3, "%02x", c);
                 } else {
                         g_snprintf (bssid + (i * 3), 4, "%02x:", c);
@@ -297,7 +297,7 @@ add_bss_proxy (GClueWifi *wifi,
         if (g_hash_table_replace (wifi->priv->bss_proxies,
                                   g_strdup (path),
                                   bss)) {
-                char ssid[MAX_SSID_LEN] = { 0 };
+                char ssid[MAX_SSID_LEN + 1] = { 0 };
 
                 wifi->priv->bss_list_changed = TRUE;
                 get_ssid_from_bss (bss, ssid);
@@ -315,7 +315,7 @@ on_bss_signal_notify (GObject    *gobject,
         const char *path;
 
         if (wpa_bss_get_signal (bss) <= -90) {
-                char bssid[BSSID_STR_LEN] = { 0 };
+                char bssid[BSSID_STR_LEN + 1] = { 0 };
 
                 get_bssid_from_bss (bss, bssid);
                 g_debug ("WiFi AP '%s' still has very low strength (%u dBm)"
@@ -341,7 +341,7 @@ on_bss_proxy_ready (GObject      *source_object,
         GClueWifi *wifi = GCLUE_WIFI (user_data);
         WPABSS *bss;
         GError *error = NULL;
-        char ssid[MAX_SSID_LEN] = { 0 };
+        char ssid[MAX_SSID_LEN + 1] = { 0 };
 
         bss = wpa_bss_proxy_new_for_bus_finish (res, &error);
         if (bss == NULL) {
@@ -401,7 +401,7 @@ on_bss_added (WPAInterface *object,
 static gboolean
 remove_bss_from_hashtable (const gchar *path, GHashTable *hash_table)
 {
-        char ssid[MAX_SSID_LEN] = { 0 };
+        char ssid[MAX_SSID_LEN + 1] = { 0 };
         WPABSS *bss = NULL;
 
         bss = g_hash_table_lookup (hash_table, path);
