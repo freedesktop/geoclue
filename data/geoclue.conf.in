@@ -10,7 +10,7 @@
 
 # Whitelist of desktop IDs (without .desktop part) of all agents we recognise,
 # separated by a ';'.
-whitelist=@demo_agent@gnome-shell;io.elementary.desktop.agent-geoclue2
+whitelist=@demo_agent@gnome-shell;io.elementary.desktop.agent-geoclue2;sm.puri.Phosh
 
 # Network NMEA source configuration options
 [network-nmea]
@@ -118,6 +118,11 @@ system=true
 users=
 
 [io.elementary.desktop.agent-geoclue2]
+allowed=true
+system=true
+users=
+
+[sm.puri.Phosh]
 allowed=true
 system=true
 users=
