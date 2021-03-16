@@ -181,6 +181,42 @@ on_name_vanished (GDBusConnection *connection,
                        0);
 }
 
+
+static gchar *
+parse_cgroup_v2 (GStrv lines)
+{
+        const char *unit, *name;
+        char *dash, *xdg_id;
+        g_autofree char *scope = NULL;
+
+        /* Cgroup v2 is always a single line:
+         * 0::/user.slice/user-1000.slice/user@1000.service/app.slice/app-flatpak-org.gnome.Maps-3358.scope
+         */
+        if (g_strv_length (lines) != 2)
+                return NULL;
+
+        if (!g_str_has_prefix (lines[0], "0::"))
+                 return NULL;
+
+        unit = lines[0] + strlen ("0::");
+        scope = g_path_get_basename (unit);
+        if (!g_str_has_prefix (scope, "app-flatpak-") ||
+            !g_str_has_suffix (scope, ".scope"))
+                return NULL;
+
+        name = scope + strlen("app-flatpak-");
+        dash = strchr (name, '-');
+        if (dash == NULL)
+                return NULL;
+        *dash = 0;
+
+        xdg_id = g_strdup (name);
+        g_debug ("Found xdg_id %s", xdg_id);
+
+        return xdg_id;
+}
+
+
 /* Based on got_credentials_cb() from xdg-app source code */
 static char *
 get_xdg_id (guint32 pid)
@@ -188,7 +224,7 @@ get_xdg_id (guint32 pid)
         char *xdg_id = NULL;
         g_autofree char *path = NULL;
         g_autofree char *content = NULL;
-        gchar **lines;
+        g_auto(GStrv) lines = NULL;
         int i;
 
         path = g_strdup_printf ("/proc/%u/cgroup", pid);
@@ -196,6 +232,10 @@ get_xdg_id (guint32 pid)
         if (!g_file_get_contents (path, &content, NULL, NULL))
                 return NULL;
         lines =  g_strsplit (content, "\n", -1);
+
+	xdg_id = parse_cgroup_v2 (lines);
+	if (xdg_id != NULL)
+		return xdg_id;
 
         for (i = 0; lines[i] != NULL; i++) {
                 const char *unit = lines[i] + strlen ("1:name=systemd:");
@@ -223,8 +263,6 @@ get_xdg_id (guint32 pid)
                 *dash = 0;
                 xdg_id = g_strdup (name);
         }
-
-        g_strfreev (lines);
 
         return xdg_id;
 }
