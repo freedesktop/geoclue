@@ -188,7 +188,9 @@ gclue_3g_get_singleton (void)
         static GClue3G *source = NULL;
 
         if (source == NULL) {
-                source = g_object_new (GCLUE_TYPE_3G, NULL);
+                source = g_object_new (GCLUE_TYPE_3G,
+                                       "compute-movement", FALSE,
+                                       NULL);
                 g_object_weak_ref (G_OBJECT (source),
                                    on_3g_destroyed,
                                    &source);

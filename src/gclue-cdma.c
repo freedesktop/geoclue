@@ -177,7 +177,9 @@ gclue_cdma_get_singleton (void)
         static GClueCDMA *source = NULL;
 
         if (source == NULL) {
-                source = g_object_new (GCLUE_TYPE_CDMA, NULL);
+                source = g_object_new (GCLUE_TYPE_CDMA,
+                                       "compute-movement", FALSE,
+                                       NULL);
                 g_object_weak_ref (G_OBJECT (source),
                                    on_cdma_destroyed,
                                    &source);

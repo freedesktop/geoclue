@@ -949,6 +949,7 @@ gclue_wifi_get_singleton (GClueAccuracyLevel level)
         static GClueWifi *wifi[] = { NULL, NULL };
         guint i;
         gboolean scramble_location = FALSE;
+        gboolean compute_movement = FALSE;
 
         g_return_val_if_fail (level >= GCLUE_ACCURACY_LEVEL_CITY, NULL);
         if (level == GCLUE_ACCURACY_LEVEL_NEIGHBORHOOD)
@@ -962,12 +963,14 @@ gclue_wifi_get_singleton (GClueAccuracyLevel level)
                         scramble_location = TRUE;
         } else {
                 i = 1;
+                compute_movement = TRUE;
         }
 
         if (wifi[i] == NULL) {
                 wifi[i] = g_object_new (GCLUE_TYPE_WIFI,
                                         "accuracy-level", level,
                                         "scramble-location", scramble_location,
+                                        "compute-movement", compute_movement,
                                         NULL);
                 g_object_weak_ref (G_OBJECT (wifi[i]),
                                    on_wifi_destroyed,
