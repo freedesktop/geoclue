@@ -71,14 +71,13 @@ libgeoclue_dep = declare_dependency(link_with: libgeoclue,
                                                libgeoclue_priv_sources,
                                                libgeoclue_headers ])
 
-gir = find_program('g-ir-scanner', required: false)
-enable_gir = get_option('introspection')
+gir = find_program('g-ir-scanner', required: get_option('introspection'))
 pkg_requirements = ['glib-2.0', 'gio-2.0', 'gio-unix-2.0']
 gir_sources = [ libgeoclue_sources,
                 libgeoclue_headers,
                 libgeoclue_public_api_gen_sources[1] ]
 
-if gir.found() and enable_gir
+if gir.found()
   geo_gir = gnome.generate_gir(libgeoclue,
                                sources: gir_sources,
                                namespace: 'Geoclue',
