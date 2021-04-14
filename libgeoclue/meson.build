@@ -72,7 +72,6 @@ libgeoclue_dep = declare_dependency(link_with: libgeoclue,
                                                libgeoclue_headers ])
 
 gir = find_program('g-ir-scanner', required: false)
-vapigen = find_program('vapigen', required: false)
 enable_gir = get_option('introspection')
 pkg_requirements = ['glib-2.0', 'gio-2.0', 'gio-unix-2.0']
 gir_sources = [ libgeoclue_sources,
@@ -92,6 +91,8 @@ if gir.found() and enable_gir
                                install: true,
                                header: 'geoclue.h',
                                extra_args: [ '--quiet' ])
+
+  vapigen = find_program('vapigen', required: get_option('vapi'))
   if vapigen.found()
     gnome.generate_vapi('libgeoclue-' + gclue_api_version,
                         sources: geo_gir[0],

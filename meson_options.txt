@@ -4,6 +4,9 @@ option('libgeoclue',
 option('introspection',
         type: 'boolean', value: true,
         description: 'Enable convenience library introspection generation')
+option('vapi',
+        type: 'boolean', value: true,
+        description: 'Enable convenience library vapi generation (ignored if introspection is disabled)')
 option('gtk-doc',
        type: 'boolean', value: true,
        description: 'Whether to generate the API reference for Geocode-GLib')
