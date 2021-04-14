@@ -1,7 +1,7 @@
 before_script:
     -  sed -i '/^#\sdeb-src /s/^#//' '/etc/apt/sources.list'
     - apt-get --allow-unauthenticated update && apt-get build-dep --yes geoclue-2.0
-    - apt-get install --yes git gobject-introspection libmm-glib-dev wget
+    - apt-get install --yes git gobject-introspection libmm-glib-dev wget valac
     - apt-get install --yes libnotify-dev xsltproc gtk-doc-tools python3-pip
     - apt-get install --yes ninja-build gettext modemmanager-dev
     - pip3 install meson==0.53.2
