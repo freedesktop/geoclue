@@ -327,13 +327,13 @@ on_get_3gpp_ready (GObject      *source_object,
         mnc = mm_location_3gpp_get_mobile_network_code (location_3gpp);
         lac = mm_location_3gpp_get_location_area_code (location_3gpp);
 
-	// Most likely this is an LTE connection and with the mozilla
-	// services they use the tracking area code in place of the
-	// location area code in this case.
-	// https://ichnaea.readthedocs.io/en/latest/api/geolocate.html#cell-tower-fields
-	if (lac == 0x0 || lac == 0xFFFE) {
-		lac = mm_location_3gpp_get_tracking_area_code(location_3gpp);
-	}
+        // Most likely this is an LTE connection and with the mozilla
+        // services they use the tracking area code in place of the
+        // location area code in this case.
+        // https://ichnaea.readthedocs.io/en/latest/api/geolocate.html#cell-tower-fields
+        if (lac == 0x0 || lac == 0xFFFE) {
+                lac = mm_location_3gpp_get_tracking_area_code(location_3gpp);
+        }
 
         cell_id = mm_location_3gpp_get_cell_id (location_3gpp);
 
