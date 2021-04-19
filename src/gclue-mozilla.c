@@ -164,6 +164,10 @@ gclue_mozilla_create_query (GList        *bss_list, /* As in Access Points */
                 json_builder_add_int_value (builder, tower->mnc);
                 json_builder_set_member_name (builder, "locationAreaCode");
                 json_builder_add_int_value (builder, tower->lac);
+                if (tower->tec == GCLUE_TOWER_TEC_4G) {
+                        json_builder_set_member_name (builder, "radioType");
+                        json_builder_add_string_value (builder, "lte");
+		}
 
                 json_builder_end_object (builder);
 
