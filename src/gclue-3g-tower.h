@@ -24,6 +24,12 @@
 
 G_BEGIN_DECLS
 
+typedef enum {
+  GCLUE_TOWER_TEC_UNKNOWN = 0,
+  GCLUE_TOWER_TEC_3G = 1,
+  GCLUE_TOWER_TEC_4G = 2,
+} GClueTowerTec;
+
 typedef struct _GClue3GTower GClue3GTower;
 
 struct _GClue3GTower {
@@ -31,6 +37,7 @@ struct _GClue3GTower {
         guint   mnc;
         gulong  lac;
         gulong  cell_id;
+        GClueTowerTec tec;
 };
 
 G_END_DECLS

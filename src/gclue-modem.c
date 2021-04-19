@@ -78,13 +78,14 @@ gclue_modem_default_init (GClueModemInterface *iface)
                       0,
                       NULL,
                       NULL,
-                      gclue_marshal_VOID__UINT_UINT_ULONG_ULONG,
+                      gclue_marshal_VOID__UINT_UINT_ULONG_ULONG_ENUM,
                       G_TYPE_NONE,
-                      4,
+                      5,
                       G_TYPE_UINT,
                       G_TYPE_UINT,
                       G_TYPE_ULONG,
-                      G_TYPE_ULONG);
+                      G_TYPE_ULONG,
+                      G_TYPE_INT);
 
         g_signal_new ("fix-cdma",
                       GCLUE_TYPE_MODEM,

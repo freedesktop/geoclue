@@ -26,6 +26,7 @@
 #include "gclue-modem-manager.h"
 #include "gclue-nmea-source.h"
 #include "gclue-marshal.h"
+#include "gclue-3g-tower.h"
 
 /**
  * SECTION:gclue-modem-manager
@@ -307,6 +308,7 @@ on_get_3gpp_ready (GObject      *source_object,
         GError *error = NULL;
         guint mcc, mnc;
         gulong lac, cell_id;
+        GClueTowerTec tec = GCLUE_TOWER_TEC_3G;
 
         location_3gpp = mm_modem_location_get_3gpp_finish (modem_location,
                                                            res,
@@ -333,6 +335,7 @@ on_get_3gpp_ready (GObject      *source_object,
         // https://ichnaea.readthedocs.io/en/latest/api/geolocate.html#cell-tower-fields
         if (lac == 0x0 || lac == 0xFFFE) {
                 lac = mm_location_3gpp_get_tracking_area_code(location_3gpp);
+                tec = GCLUE_TOWER_TEC_4G;
         }
 
         cell_id = mm_location_3gpp_get_cell_id (location_3gpp);
@@ -344,7 +347,7 @@ on_get_3gpp_ready (GObject      *source_object,
         g_clear_object (&priv->location_3gpp);
         priv->location_3gpp = location_3gpp;
 
-        g_signal_emit (manager, signals[FIX_3G], 0, mcc, mnc, lac, cell_id);
+        g_signal_emit (manager, signals[FIX_3G], 0, mcc, mnc, lac, cell_id, tec);
 }
 
 static void

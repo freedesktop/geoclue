@@ -250,11 +250,12 @@ gclue_3g_get_available_accuracy_level (GClueWebSource *web,
 }
 
 static void
-on_fix_3g (GClueModem *modem,
-           guint       mcc,
-           guint       mnc,
-           gulong      lac,
-           gulong      cell_id,
+on_fix_3g (GClueModem   *modem,
+           guint         mcc,
+           guint         mnc,
+           gulong        lac,
+           gulong        cell_id,
+           GClueTowerTec tec,
            gpointer    user_data)
 {
         GClue3GPrivate *priv = GCLUE_3G (user_data)->priv;
@@ -265,6 +266,7 @@ on_fix_3g (GClueModem *modem,
         priv->tower->mnc = mnc;
         priv->tower->lac = lac;
         priv->tower->cell_id = cell_id;
+        priv->tower->tec = tec;
 
         gclue_web_source_refresh (GCLUE_WEB_SOURCE (user_data));
 }
