@@ -84,6 +84,7 @@ gclue_config_finalize (GObject *object)
         g_clear_pointer (&priv->wifi_url, g_free);
         g_clear_pointer (&priv->wifi_submit_url, g_free);
         g_clear_pointer (&priv->wifi_submit_nick, g_free);
+        g_clear_pointer (&priv->nmea_socket, g_free);
 
         g_list_foreach (priv->app_configs, (GFunc) app_config_free, NULL);
 
@@ -299,8 +300,19 @@ load_modem_gps_config (GClueConfig *config)
 static void
 load_network_nmea_config (GClueConfig *config)
 {
+        GError *error = NULL;
         config->priv->enable_nmea_source =
                 load_enable_source_config (config, "network-nmea");
+        if (!config->priv->enable_nmea_source)
+                return;
+        config->priv->nmea_socket = g_key_file_get_string (config->priv->key_file,
+                                                           "network-nmea",
+                                                           "nmea-socket",
+                                                           &error);
+        if (error != NULL) {
+                g_debug ("`nmea-socket` configuration not set.");
+                g_clear_error (&error);
+        }
 }
 
 static void
