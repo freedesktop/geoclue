@@ -242,19 +242,24 @@ get_xdg_id (guint32 pid)
                 g_autofree char *scope = NULL;
                 const char *name;
                 char *dash;
+                const char *prefix = NULL;
 
                 if (!g_str_has_prefix (lines[i], "1:name=systemd:"))
                         continue;
 
                 scope = g_path_get_basename (unit);
-                if ((!g_str_has_prefix (scope, "xdg-app-") &&
-                     !g_str_has_prefix (scope, "flatpak-")) ||
-                    !g_str_has_suffix (scope, ".scope"))
+
+                if (g_str_has_prefix (scope, "xdg-app-"))
+                        prefix = "xdg-app-";
+                else if (g_str_has_prefix (scope, "flatpak-"))
+                        prefix = "flatpak-";
+                else if (g_str_has_prefix (scope, "app-flatpak-"))
+                        prefix = "app-flatpak-";
+
+                if (prefix == NULL || !g_str_has_suffix (scope, ".scope"))
                         break;
 
-                /* strlen("flatpak-") == strlen("xdg-app-")
-                 * so all is good here */
-                name = scope + strlen("xdg-app-");
+                name = scope + strlen(prefix);
                 dash = strchr (name, '-');
 
                 if (dash == NULL)
